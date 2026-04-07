@@ -1,53 +1,32 @@
 package br.mackenzie.labEngenhariaSW.sipLogBFF.config;
- 
+
 import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.client.OAuth2AuthorizeRequest;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
- 
+
 @Component
 public class TokenRelayInterceptor implements ClientHttpRequestInterceptor {
- 
-    private final OAuth2AuthorizedClientManager authorizedClientManager;
- 
-    public TokenRelayInterceptor(OAuth2AuthorizedClientManager authorizedClientManager) {
-        this.authorizedClientManager = authorizedClientManager;
-    }
- 
+
     @Override
     public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
-        // Quem é que está tentando fazer essa chamada?
+        
+        // 1. Pega o usuário autenticado do contexto atual da requisição
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
- 
-        // Se for um usuário logado via OAuth2
-        if (authentication instanceof OAuth2AuthenticationToken oauthToken) {
-            
-            // Monta um pedido para o Gerente: "Me dá o token válido para este cliente"
-            OAuth2AuthorizeRequest authorizeRequest = OAuth2AuthorizeRequest
-                    .withClientRegistrationId(oauthToken.getAuthorizedClientRegistrationId())
-                    .principal(authentication)
-                    .build();
- 
-            // O Gerente verifica se o token existe e se não expirou (renova se precisar)
-            OAuth2AuthorizedClient authorizedClient = authorizedClientManager.authorize(authorizeRequest);
- 
-            // Se conseguiu o token, coloca no Header Authorization
-            if (authorizedClient != null && authorizedClient.getAccessToken() != null) {
-                request.getHeaders().setBearerAuth(authorizedClient.getAccessToken().getTokenValue());
-            }
+
+        // 2. Verifica se existe um usuário e se ele está usando um JWT
+        if (authentication != null && authentication.getPrincipal() instanceof Jwt jwt) {
+            // 3. Injeta o token original no cabeçalho Authorization da nova requisição (para a core-api)
+            request.getHeaders().setBearerAuth(jwt.getTokenValue());
         }
- 
-        // Segue o fluxo 
+
+        // 4. Segue com a execução da chamada HTTP
         return execution.execute(request, body);
     }
 }
- 

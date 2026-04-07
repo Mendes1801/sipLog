@@ -14,7 +14,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.core.ParameterizedTypeReference;
 
 import br.mackenzie.labEngenhariaSW.sipLogBFF.model.FeedItemDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.model.RegistroDTO;
@@ -66,6 +68,21 @@ public class SipBffController {
         // 3. Monta o objeto final e envia para o Microserviço Core salvar no PostgreSQL.
 
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @GetMapping("/feed")
+    public ResponseEntity<List<Object>> getFeedSocial(@AuthenticationPrincipal Jwt jwt, RestClient restClient) {
+        
+        String usuarioId = jwt.getSubject(); 
+
+        // Olha que limpo! Não precisa mais passar o header aqui. 
+        // O RestClient vai chamar o TokenRelayInterceptor que acabamos de criar, 
+        // e ele vai injetar o token sozinho!
+        List<Object> feedDaCoreApi = restClient.get()
+                .uri("http://localhost:8082/internal/v1/feed/" + usuarioId)
+                .retrieve()
+                .body(new ParameterizedTypeReference<List<Object>>() {});
+        return ResponseEntity.ok(feedDaCoreApi);
     }
 
 }
