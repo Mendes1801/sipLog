@@ -47,9 +47,7 @@ public class SipBffController {
         // para o Microserviço Core pedindo o feed do 'usuarioId'.
         
         // Retorno mockado para exemplo
-        List<FeedItemDTO> feed = List.of(
-            new FeedItemDTO(1L, "Gabriel", "Vinho Tinto Reservado", 4.5, "https://s3.aws.com/foto1.jpg")
-        );
+        List<FeedItemDTO> feed = null;
 
         return ResponseEntity.ok(feed);
     }
