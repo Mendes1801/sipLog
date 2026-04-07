@@ -1,0 +1,23 @@
+services:
+  mariadb:
+    image: postgressDB
+    container_name: postgressDB
+    environment:
+      MARIADB_ROOT_PASSWORD: passwd
+      MARIADB_USER: mariadbuser
+      MARIADB_PASSWORD: userpasswd
+      MARIADB_DATABASE: db_test
+    ports:
+      - "3306:3306"
+    restart: unless-stopped
+    volumes:
+      - ./volume/postgress:/var/lib/mysql
+
+  backend:
+    image: sipLogBFF
+    build: .
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    depends_on:
+      - postgress
