@@ -1,0 +1,1 @@
+Instruções acerca da API_core
