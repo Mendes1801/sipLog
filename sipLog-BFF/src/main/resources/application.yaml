@@ -1,31 +1,6 @@
-server:
-  port: 8080
-
 spring:
-  application:
-    name: sipLogBFF
-  
-  # Note que agora 'security' está identado dentro de 'spring'
   security:
     oauth2:
-      client:
-        registration:
-          keycloak:
-            client-id: wtt-client
-            client-secret: Qrhfjnx9bVkUN8wPL67dE9MSrGPpvahl
-            scope: openid, profile, email
-            authorization-grant-type: authorization_code
-            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
-        provider:
-          keycloak:
-            issuer-uri: https://mackleaps.mackenzie.br/keycloak/realms/wtt
-
-logging:
-  level:
-    org:
-      springframework:
-        security: DEBUG
-        oauth2: DEBUG
-        web:
-          client:
-            RestTemplate: DEBUG
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/siplog

@@ -1,23 +1,22 @@
+version: '3.8'
+
 services:
-  mariadb:
-    image: postgressDB
-    container_name: postgressDB
+  postgres:
+    image: postgres:15-alpine
+    container_name: sip_postgres
     environment:
-      MARIADB_ROOT_PASSWORD: passwd
-      MARIADB_USER: mariadbuser
-      MARIADB_PASSWORD: userpasswd
-      MARIADB_DATABASE: db_test
+      POSTGRES_DB: sip_db
+      POSTGRES_USER: sip_user
+      POSTGRES_PASSWORD: sip_password
     ports:
-      - "3306:3306"
+      - "5432:5432"
     restart: unless-stopped
     volumes:
-      - ./volume/postgress:/var/lib/mysql
+      - ./volume/postgres:/var/lib/postgresql/data
 
-  backend:
-    image: sipLogBFF
-    build: .
-    restart: unless-stopped
+  # Opcional por agora, mas bom já deixar no esquema para o cache do Feed
+  redis:
+    image: redis:7-alpine
+    container_name: sip_redis
     ports:
-      - "8081:8081"
-    depends_on:
-      - postgress
+      - "6379:6379"
