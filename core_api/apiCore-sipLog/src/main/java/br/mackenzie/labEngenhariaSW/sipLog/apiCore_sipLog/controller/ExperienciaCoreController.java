@@ -19,11 +19,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/apiCore/v1/experiencia")
-public class ExperienciaCoreConroller {
+public class ExperienciaCoreController {
     
     private final ExperienciaService experienciaService;
 
-    ExperienciaCoreConroller(ExperienciaService experienciaService) {
+    ExperienciaCoreController(ExperienciaService experienciaService) {
         this.experienciaService = experienciaService;
     }
 

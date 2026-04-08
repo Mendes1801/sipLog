@@ -2,7 +2,6 @@ package br.mackenzie.labEngenhariaSW.sipLogBFF.controller;
 
 import java.security.Principal;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
@@ -12,21 +11,25 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.multipart.MultipartFile;
 
-import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.FeedResponseDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.RegistroDTO;
-
-import org.springframework.core.ParameterizedTypeReference;
 
 @RestController
 public class SipBffController {
 
+    private final RestClient restClient;
 
-   @GetMapping("/me")
+    // Melhor prática: Injetar o RestClient via construtor
+    public SipBffController(RestClient restClient) {
+        this.restClient = restClient;
+    }
+
+    @GetMapping("/me")
     public ResponseEntity<Map<String, Object>> getMe(Principal auth) {
         Map<String, Object> dadosUser = new HashMap<>();
 
@@ -38,19 +41,34 @@ public class SipBffController {
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 
-    @GetMapping("/feed")
-    public ResponseEntity<List<FeedResponseDTO>> getFeedSocial(@AuthenticationPrincipal Jwt jwt) {
-            
-        // Pega o ID único do usuário logado direto do token do Keycloak (geralmente o campo 'sub')
+    // Rota 1: O Flutter chama para montar a aba "Explore / Global"
+    @GetMapping("/feed/global")
+    public ResponseEntity<Object> getFeedGlobal(@RequestParam(defaultValue = "0") int pagina) {
+        
+        // O BFF repassa o pedido de paginação para a Core API
+        Object feedDaCoreApi = restClient.get()
+                .uri("http://localhost:8082/internal/v1/feed/global?pagina=" + pagina)
+                .retrieve()
+                .body(Object.class); // Recebe a página estruturada (JSON) e repassa direto
+        
+        return ResponseEntity.ok(feedDaCoreApi);
+    }
+
+    // Rota 2: O Flutter chama para montar a aba "Atelier / Amigos"
+    @GetMapping("/feed/amigos")
+    public ResponseEntity<Object> getFeedAmigos(
+            @AuthenticationPrincipal Jwt jwt, 
+            @RequestParam(defaultValue = "0") int pagina) {
+        
         String usuarioId = jwt.getSubject(); 
 
-        // TODO: O BFF agora faria uma chamada (via RestClient ou Feign) 
-        // para o Microserviço Core pedindo o feed do 'usuarioId'.
+        Object feedDaCoreApi = restClient.get()
+                .uri("http://localhost:8082/internal/v1/feed/amigos?pagina=" + pagina)
+                .header("X-User-Id", usuarioId) // Enviando a credencial que a Core API exige
+                .retrieve()
+                .body(Object.class);
         
-        // Retorno mockado para exemplo
-        List<FeedResponseDTO> feed = null;
-
-        return ResponseEntity.ok(feed);
+        return ResponseEntity.ok(feedDaCoreApi);
     }
 
     @PostMapping(value = "/experiencias", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -61,28 +79,8 @@ public class SipBffController {
 
         String usuarioId = jwt.getSubject();
 
-        // O BFF orquestra o fluxo complexo:
-        // 1. Pega o 'MultipartFile', comprime (opcional) e envia para o Amazon S3.
-        // 2. Recebe a URL da foto salva no S3.
-        // 3. Monta o objeto final e envia para o Microserviço Core salvar no PostgreSQL.
+        // Lógica do Upload S3 e encaminhamento para Core API...
 
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
-
-    @GetMapping("/feed")
-    public ResponseEntity<List<Object>> getFeedSocial(@AuthenticationPrincipal Jwt jwt, RestClient restClient) {
-        
-        String usuarioId = jwt.getSubject(); 
-
-        // Olha que limpo! Não precisa mais passar o header aqui. 
-        // O RestClient vai chamar o TokenRelayInterceptor que acabamos de criar, 
-        // e ele vai injetar o token sozinho!
-        List<Object> feedDaCoreApi = restClient.get()
-                .uri("http://localhost:8082/internal/v1/feed/" + usuarioId)
-                .retrieve()
-                .body(new ParameterizedTypeReference<List<Object>>() {});
-        return ResponseEntity.ok(feedDaCoreApi);
-    }
-
 }
-
