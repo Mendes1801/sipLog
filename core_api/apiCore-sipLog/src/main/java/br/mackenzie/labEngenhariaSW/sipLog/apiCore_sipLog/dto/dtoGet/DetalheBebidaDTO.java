@@ -1,4 +1,4 @@
-package br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.dto;
+package br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.dto.dtoGet;
 
 import java.util.Map;
 

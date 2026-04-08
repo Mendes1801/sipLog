@@ -1,4 +1,4 @@
-package br.mackenzie.labEngenhariaSW.sipLog.entity;
+package br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;

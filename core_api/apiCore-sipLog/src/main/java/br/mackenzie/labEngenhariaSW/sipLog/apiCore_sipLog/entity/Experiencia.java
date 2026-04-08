@@ -1,4 +1,4 @@
-package br.mackenzie.labEngenhariaSW.sipLog.entity;
+package br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -22,6 +22,8 @@ public class Experiencia {
     @JoinColumn(name = "bebida_id", nullable = false)
     private Bebida bebida;
 
+    @Enumerated(EnumType.STRING)
+    private String visibilidade; // "PUBLICA", "AMIGOS", "PRIVADA"
     private Double nota;
     private String comentario;
     private String fotoPostUrl;
