@@ -1,4 +1,4 @@
-package br.mackenzie.labEngenhariaSW.sipLogBFF.model;
+package br.mackenzie.labEngenhariaSW.sipLogBFF.dto;
 
 public record SeguirAmigoDTO(
         Long idUsuarioAlvo

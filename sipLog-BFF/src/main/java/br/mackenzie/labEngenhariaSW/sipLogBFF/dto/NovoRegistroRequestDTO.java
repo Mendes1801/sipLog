@@ -1,6 +1,7 @@
-package br.mackenzie.labEngenhariaSW.sipLogBFF.model;
+package br.mackenzie.labEngenhariaSW.sipLogBFF.dto;
 
-public record NovaExperienciaDTO(
+public record NovoRegistroRequestDTO(
+        NovaBebidaDTO novaBebida,
         Long idBebida,
         Double nota,
         String comentario,

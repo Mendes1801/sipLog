@@ -1,4 +1,4 @@
-package main.java.br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.config;
+package br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

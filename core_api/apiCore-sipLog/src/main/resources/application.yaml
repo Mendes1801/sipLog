@@ -5,9 +5,17 @@ spring:
   application:
     name: apiCore-sipLog
  
-spring:
   security:
     oauth2:
       resourceserver:
         jwt:
           issuer-uri: http://localhost:8080/realms/BFF
+          
+  datasource:
+    url: jdbc:postgresql://localhost:5432/sip_db
+    username: sip_user
+    password: sip_password
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true # Muito útil para ver as queries rodando no console durante o desenvolvimento

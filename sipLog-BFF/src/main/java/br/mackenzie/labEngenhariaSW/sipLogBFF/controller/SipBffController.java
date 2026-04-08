@@ -16,10 +16,11 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.core.ParameterizedTypeReference;
 
-import br.mackenzie.labEngenhariaSW.sipLogBFF.model.FeedItemDTO;
-import br.mackenzie.labEngenhariaSW.sipLogBFF.model.RegistroDTO;
+import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.FeedResponseDTO;
+import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.RegistroDTO;
+
+import org.springframework.core.ParameterizedTypeReference;
 
 @RestController
 public class SipBffController {
@@ -38,7 +39,7 @@ public class SipBffController {
     }
 
     @GetMapping("/feed")
-    public ResponseEntity<List<FeedItemDTO>> getFeedSocial(@AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<List<FeedResponseDTO>> getFeedSocial(@AuthenticationPrincipal Jwt jwt) {
             
         // Pega o ID único do usuário logado direto do token do Keycloak (geralmente o campo 'sub')
         String usuarioId = jwt.getSubject(); 
@@ -47,7 +48,7 @@ public class SipBffController {
         // para o Microserviço Core pedindo o feed do 'usuarioId'.
         
         // Retorno mockado para exemplo
-        List<FeedItemDTO> feed = null;
+        List<FeedResponseDTO> feed = null;
 
         return ResponseEntity.ok(feed);
     }

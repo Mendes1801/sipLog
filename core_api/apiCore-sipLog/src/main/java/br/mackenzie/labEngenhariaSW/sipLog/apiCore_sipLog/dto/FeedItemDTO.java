@@ -1,4 +1,4 @@
-package br.mackenzie.labEngenhariaSW.sipLogBFF.model;
+package br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.dto;
 
 public record FeedItemDTO(
         Long idPost,
