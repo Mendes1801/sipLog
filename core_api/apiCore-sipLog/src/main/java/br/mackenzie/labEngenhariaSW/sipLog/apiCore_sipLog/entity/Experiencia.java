@@ -22,7 +22,6 @@ public class Experiencia {
     @JoinColumn(name = "bebida_id", nullable = false)
     private Bebida bebida;
 
-    @Enumerated(EnumType.STRING)
     private String visibilidade; // "PUBLICA", "AMIGOS", "PRIVADA"
     private Double nota;
     private String comentario;

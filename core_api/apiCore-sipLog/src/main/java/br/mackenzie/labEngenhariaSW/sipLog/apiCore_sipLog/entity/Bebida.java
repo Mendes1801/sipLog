@@ -24,7 +24,6 @@ public class Bebida {
 
     // Salva JSON nativo no banco
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "jsonb")
     private Map<String, String> caracteristicas;
 
 
