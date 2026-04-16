@@ -20,3 +20,34 @@ services:
     container_name: sip_redis
     ports:
       - "6379:6379"
+
+# Adicionando a Core API
+  core-api:
+    build:
+      context: ../core_api/apiCore-sipLog
+      dockerfile: Dockerfile
+    container_name: siplog-core-api
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    environment:
+      # Limite de memória vital para o container não cair
+      - JAVA_OPTS=-Xmx512m -Xms256m 
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/seu_banco
+
+  # Adicionando o BFF
+  bff:
+    build:
+      context: ../sipLog-BFF
+      dockerfile: Dockerfile
+    container_name: siplog-bff
+    ports:
+      - "3000:3000"
+    depends_on:
+      - core-api
+      - redis
+    environment:
+      # Limite de memória
+      - JAVA_OPTS=-Xmx512m -Xms256m 
+      - CORE_API_URL=http://core-api:8080
