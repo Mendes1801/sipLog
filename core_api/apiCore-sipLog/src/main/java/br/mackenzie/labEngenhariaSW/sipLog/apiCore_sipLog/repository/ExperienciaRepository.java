@@ -25,6 +25,11 @@ public interface ExperienciaRepository extends JpaRepository<Experiencia, Long> 
     @EntityGraph(attributePaths = {"usuario", "bebida"}) // Evita N+1
     Page<Experiencia> findAllByOrderByDataCriacaoDesc(Pageable pageable);
 
+
+    // Busca apenas os posts de um usuário específico
+    @EntityGraph(attributePaths = {"usuario", "bebida"}) // Evita o N+1
+    Page<Experiencia> findByUsuarioIdOrderByDataCriacaoDesc(Long usuarioId, Pageable pageable);
+
     // Busca as experiências onde o ID do autor esteja dentro da 
     // lista de pessoas que o meu usuário segue
     @EntityGraph(attributePaths = {"usuario", "bebida"}) // Mantém a performance evitando N+1

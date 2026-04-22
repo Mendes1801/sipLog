@@ -1,4 +1,4 @@
-package br.mackenzie.labEngenhariaSW.sipLogBFF.dto;
+package br.mackenzie.labEngenhariaSW.sipLogBFF.dto.response;
 
 import java.util.List;
 

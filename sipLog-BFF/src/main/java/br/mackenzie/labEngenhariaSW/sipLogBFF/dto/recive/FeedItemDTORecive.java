@@ -1,6 +1,8 @@
-package br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.dto.dtoGet;
+package br.mackenzie.labEngenhariaSW.sipLogBFF.dto.recive;
 
-public record FeedItemDTO(
+import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.EngajamentoDTO;
+
+public record FeedItemDTORecive(
         Long idPost,
         AutorDTO autor,
         BebidaResumoDTO bebida,
@@ -10,5 +12,4 @@ public record FeedItemDTO(
     public record AutorDTO(Long idUsuario, String nome, String fotoAvatarUrl) {}
     public record BebidaResumoDTO(Long idBebida, String nome, String categoria) {}
     public record ExperienciaFeedDTO(Double nota, String comentario, String fotoPostUrl, String data, String local) {}
-    public record EngajamentoDTO(Boolean curtidoPorMim, Integer totalCurtidas, Integer totalComentarios) {}
 }

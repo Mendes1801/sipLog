@@ -5,6 +5,8 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 
+import org.hibernate.annotations.Formula;
+
 @Entity
 @Table(name = "tb_experiencia")
 @Data //Cria os getters e setters automaticamente
@@ -29,5 +31,13 @@ public class Experiencia {
     private String localizacao;
 
     private LocalDateTime dataCriacao = LocalDateTime.now();
+
+    // Conta quantas curtidas estão ligadas ao ID deste post.
+    @Formula("(SELECT COUNT(c.id) FROM tb_curtida c WHERE c.experiencia_id = id)")
+    private Integer totalCurtidas;
+
+    // Conta quantos comentários estão ligados ao ID deste post.
+    @Formula("(SELECT COUNT(co.id) FROM tb_comentario co WHERE co.experiencia_id = id)")
+    private Integer totalComentarios;
 
 }

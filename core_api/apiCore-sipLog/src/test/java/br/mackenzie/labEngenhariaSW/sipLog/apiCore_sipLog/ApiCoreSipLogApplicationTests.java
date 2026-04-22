@@ -15,7 +15,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
     "spring.jpa.database-platform=org.hibernate.dialect.H2Dialect",
     "spring.jpa.hibernate.ddl-auto=create-drop"
 })
-@ActiveProfiles("test")
+@ActiveProfiles("testAPI-CORE")
 class ApiCoreSipLogApplicationTests {
 
     @MockitoBean
