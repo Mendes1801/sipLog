@@ -8,7 +8,7 @@ skinparam classAttributeIconSize 0
 skinparam monochrome true
 skinparam shadowing false
 
-package "br.mackenzie.sipLog.apiCore.entity" {
+package "entity" {
 
     class Usuario {
         - id: UUID
@@ -75,3 +75,4 @@ note right of Bebida::caracteristicas
 end note
 
 @enduml
+```
