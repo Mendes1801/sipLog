@@ -1,0 +1,67 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+
+class MapScreen extends StatefulWidget {
+  @override
+  _MapScreenState createState() => _MapScreenState();
+}
+
+class _MapScreenState extends State<MapScreen> {
+  // Lista que vai armazenar as coordenadas dos pins salvos
+  List<LatLng> savedLocations = [
+    LatLng(-23.5505, -46.6333), // Pin inicial de exemplo
+  ];
+
+  // Função para adicionar um novo pin à lista e atualizar a tela
+  void _addPin(LatLng position) {
+    setState(() {
+      savedLocations.add(position);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Mapa de Registros'),
+        backgroundColor: Colors.purple[800], // Um toque de cor temática
+      ),
+      body: FlutterMap(
+        options: MapOptions(
+          // Posição e zoom iniciais do mapa
+          initialCenter: LatLng(-23.5505, -46.6333), 
+          initialZoom: 13.0,
+          // Evento disparado quando o usuário toca no mapa
+          onTap: (tapPosition, point) {
+            _addPin(point); // Salva a coordenada tocada
+          },
+        ),
+        children: [
+          // 1. A camada visual do mapa (Tiles do OpenStreetMap)
+          TileLayer(
+            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+            userAgentPackageName: 'com.seunome.seuapp', // Coloque o ID do seu app aqui
+          ),
+          
+          // 2. A camada onde os marcadores (pins) são desenhados
+          MarkerLayer(
+            markers: savedLocations.map((latlng) {
+              return Marker(
+                point: latlng,
+                width: 40.0,
+                height: 40.0,
+                // O design do seu pin (pode ser qualquer Widget do Flutter)
+                child: const Icon(
+                  Icons.wine_bar, // Um ícone customizado para seus registros
+                  color: Colors.redAccent,
+                  size: 40.0,
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+}
