@@ -25,6 +25,4 @@ public class Bebida {
     // Salva JSON nativo no banco
     @JdbcTypeCode(SqlTypes.JSON)
     private Map<String, String> caracteristicas;
-
-
 }
