@@ -37,6 +37,7 @@ public class UsuarioBffController {
         return ResponseEntity.ok(perfil);
     }
 
+
     // ITEM 1: Buscar o perfil de um amigo
     @GetMapping("/{idUsuario}")
     public ResponseEntity<UsuarioPerfilDTO> getPerfilUsuario(@PathVariable Long idUsuario, @AuthenticationPrincipal Jwt principal) {
