@@ -80,20 +80,6 @@ public class FeedBffController {
     }
 
 
-    @GetMapping("/me")
-    public ResponseEntity<UsuarioPerfilDTO> getMe() {
-
-            UsuarioPerfilDTO usuarioPerfilDTO = restClient.get()
-                            .uri("http://localhost:8082/apiCore/v1/usuarios/me")
-                            .retrieve()
-                            .body(UsuarioPerfilDTO.class);
-
-            if (usuarioPerfilDTO != null) {
-                    return ResponseEntity.ok(usuarioPerfilDTO);
-            } else {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-            }
-    }
 
     @GetMapping("/amigos")
     public ResponseEntity<Object> getFeedAmigos(
