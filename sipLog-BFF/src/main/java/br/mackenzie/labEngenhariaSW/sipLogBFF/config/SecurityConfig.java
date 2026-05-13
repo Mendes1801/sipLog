@@ -20,7 +20,8 @@ public class SecurityConfig {
 
         .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(req -> req
-                .requestMatchers("/", "/public/**", "/error").permitAll()
+                //Não esquecer de tirar o /**. Usei só pra testar algumas rotas sem precisar fazer login
+                .requestMatchers("/**", "/public/**", "/error").permitAll()
                 .anyRequest().authenticated()
             )
             .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))

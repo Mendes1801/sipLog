@@ -1,10 +1,13 @@
 package br.mackenzie.labEngenhariaSW.sipLogBFF.service;
 
+import org.springframework.stereotype.Service;
+
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.ComentarioResponseDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.NovaExperienciaDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.NovoComentarioDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.recive.PaginaBffDTORecive;
 
+@Service
 public class ExperienciaBffService {
 
     public void criarPostagem(NovaExperienciaDTO dto, String subject) {

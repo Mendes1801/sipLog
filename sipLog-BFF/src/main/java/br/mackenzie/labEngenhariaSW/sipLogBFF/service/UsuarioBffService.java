@@ -1,14 +1,66 @@
 package br.mackenzie.labEngenhariaSW.sipLogBFF.service;
 
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
 
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.UsuarioPerfilDTO;
 
+@Service
 public class UsuarioBffService {
 
+    private final RestClient restClient;
+
+    // Injetamos o RestClient que fará a ponte com a Core API
+    public UsuarioBffService(RestClient restClient) {
+        this.restClient = restClient;
+    }
+
+    /**
+     * ITEM 1: Sincronização de Usuário
+     * Pega os dados do JWT do Keycloak e avisa a Core API para salvar/atualizar no banco.
+     */
     public void sincronizarComCoreApi(Jwt principal) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'sincronizarComCoreApi'");
+        // 1. Extrai os dados essenciais de dentro do Token do Keycloak
+        String keycloakId = principal.getSubject();
+        String nome = principal.getClaimAsString("name"); // No Keycloak, o nome costuma vir na claim "name"
+        String email = principal.getClaimAsString("preferred_username"); // O email costuma vir aqui
+
+        // Se o nome vier nulo, usamos o email como fallback
+        if (nome == null) {
+            nome = email;
+        }
+
+        // 2. Montamos um DTO simples (Record local) para enviar na requisição
+        UsuarioSyncDTO dto = new UsuarioSyncDTO(keycloakId, nome, email, null); // null para foto inicial
+
+        // 3. Fazemos o POST para a Core API (Fire and Forget)
+        restClient.post()
+                .uri("http://localhost:8082/internal/v1/usuarios/sync")
+                .body(dto)
+                .retrieve()
+                .toBodilessEntity(); // Não precisamos ler o corpo da resposta, só garantir o Status 200/201
+    }
+
+    /**
+     * DTO local apenas para formatar o JSON de envio
+     */
+    public record UsuarioSyncDTO(String keycloakId, String nome, String email, String fotoAvatarUrl) {}
+
+    
+    // ========================================================================
+    // Esqueletos dos próximos métodos do Item 1 (Para o Controller não quebrar)
+    // ========================================================================
+
+
+
+    public void alternarSeguirUsuario(String meuKeycloakId, Long idAlvo) {
+        // Faz o POST simples para a Core API gerenciar o Seguidor
+        restClient.post()
+                .uri("http://localhost:8082/internal/v1/usuarios/" + idAlvo + "/seguir")
+                .header("X-User-Id", meuKeycloakId) // Exemplo de repasse manual, ou via interceptor
+                .retrieve()
+                .toBodilessEntity();
     }
 
     public UsuarioPerfilDTO buscarMeuPerfil(String subject) {
@@ -20,10 +72,4 @@ public class UsuarioBffService {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'buscarPerfilDeTerceiro'");
     }
-
-    public void alternarSeguirUsuario(String subject, Long idAlvo) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'alternarSeguirUsuario'");
-    }
-
 }

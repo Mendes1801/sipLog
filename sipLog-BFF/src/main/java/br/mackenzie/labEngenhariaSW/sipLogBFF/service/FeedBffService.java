@@ -1,8 +1,11 @@
 package br.mackenzie.labEngenhariaSW.sipLogBFF.service;
 
+import org.springframework.stereotype.Service;
+
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.recive.PaginaBffDTORecive;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.response.FeedResponseDTO;
 
+@Service
 public class FeedBffService {
 
     public PaginaBffDTORecive<FeedResponseDTO> buscarFeedDeTerceiro(Long idUsuario, int pagina, String subject) {
