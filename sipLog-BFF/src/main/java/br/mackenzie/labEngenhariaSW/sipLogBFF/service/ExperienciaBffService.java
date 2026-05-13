@@ -45,4 +45,9 @@ public class ExperienciaBffService {
         throw new UnsupportedOperationException("Unimplemented method 'deletarComentario'");
     }
 
+    public void deletarPostagem(Long id, String subject) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'deletarPostagem'");
+    }
+
 }
