@@ -13,5 +13,15 @@ public class BebidaBffService {
 
         return null;
     }
+
+    public BebidaResumoDTO buscarPorId(Long id) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'buscarPorId'");
+    }
+
+    public BebidaResumoDTO adicionarBebida(BebidaResumoDTO novaBebida) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'adicionarBebida'");
+    }
     
 }

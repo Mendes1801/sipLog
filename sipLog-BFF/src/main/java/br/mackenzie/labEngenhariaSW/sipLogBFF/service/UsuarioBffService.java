@@ -72,4 +72,9 @@ public class UsuarioBffService {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'buscarPerfilDeTerceiro'");
     }
+
+    public UsuarioPerfilDTO buscarSeguidoresDeUsuario(Long idUsuario, String subject) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'buscarSeguidoresDeUsuario'");
+    }
 }

@@ -30,4 +30,19 @@ public class ExperienciaBffService {
         throw new UnsupportedOperationException("Unimplemented method 'buscarComentarios'");
     }
 
+    public void editarPostagem(Long id, NovaExperienciaDTO dto, String subject) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'editarPostagem'");
+    }
+
+    public void editarComentario(Long id, Long idComentario, NovoComentarioDTO dto, String subject) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'editarComentario'");
+    }
+
+    public void deletarComentario(Long id, Long idComentario, String subject) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'deletarComentario'");
+    }
+
 }

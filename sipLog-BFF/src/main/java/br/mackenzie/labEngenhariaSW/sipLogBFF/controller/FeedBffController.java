@@ -1,5 +1,10 @@
 package br.mackenzie.labEngenhariaSW.sipLogBFF.controller;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.List;
+
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -8,7 +13,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestClient;
 
+import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.recive.FeedItemDTORecive;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.recive.PaginaBffDTORecive;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.response.FeedResponseDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.service.FeedBffService;
@@ -18,9 +25,11 @@ import br.mackenzie.labEngenhariaSW.sipLogBFF.service.FeedBffService;
 public class FeedBffController {
 
     private final FeedBffService feedService;
+    private final RestClient restCLient;
 
-    public FeedBffController(FeedBffService feedService) {
+    public FeedBffController(FeedBffService feedService, RestClient restClient) {
         this.feedService = feedService;
+        this.restCLient = restClient;
     }
 
     // Rota 1: O Flutter chama para montar a aba "Explore / Global"
@@ -28,7 +37,7 @@ public class FeedBffController {
     public ResponseEntity<PaginaBffDTORecive<FeedResponseDTO>> getFeedGlobal(@RequestParam(defaultValue = "0") int pagina) {
         
         // 1. O BFF pede a página para a Core API
-        PaginaBffDTORecive<FeedItemDTORecive> feedApi = restClient.get()
+        PaginaBffDTORecive<FeedItemDTORecive> feedApi = restCLient.get()
                 .uri("http://localhost:8082/internal/v1/feed/global?pagina=" + pagina)
                 .retrieve()
                 .body(new ParameterizedTypeReference<PaginaBffDTORecive<FeedItemDTORecive>>() {}); 
@@ -88,7 +97,7 @@ public class FeedBffController {
 
             String usuarioId = jwt.getSubject();
 
-            Object feedDaCoreApi = restClient.get()
+            Object feedDaCoreApi = restCLient.get()
                             .uri("http://localhost:8082/internal/v1/feed/amigos?pagina=" + pagina)
                             .header("X-User-Id", usuarioId) // Enviando a credencial que a Core API exige
                             .retrieve()
