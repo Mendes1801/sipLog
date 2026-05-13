@@ -1,10 +1,14 @@
 package br.mackenzie.labEngenhariaSW.sipLogBFF.service;
 
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.UsuarioPerfilDTO;
+import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.UsuarioResumoDTO;
+import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.UsuarioUpdateDTO;
+import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.recive.PaginaBffDTORecive;
 
 @Service
 public class UsuarioBffService {
@@ -63,18 +67,46 @@ public class UsuarioBffService {
                 .toBodilessEntity();
     }
 
-    public UsuarioPerfilDTO buscarMeuPerfil(String subject) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'buscarMeuPerfil'");
+    //Busca o perfil do usuário logado (Meu Perfil)
+    public UsuarioPerfilDTO buscarMeuPerfil(String meuKeycloakId) {
+        return restClient.get()
+                .uri("http://localhost:8082/internal/v1/usuarios/perfil/me")
+                .header("X-User-Id", meuKeycloakId)
+                .retrieve()
+                .body(UsuarioPerfilDTO.class);
     }
 
-    public UsuarioPerfilDTO buscarPerfilDeTerceiro(Long idUsuario, String subject) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'buscarPerfilDeTerceiro'");
+
+    //Busca o perfil de outro usuário, verificando se eu já o sigo
+    public UsuarioPerfilDTO buscarPerfilDeTerceiro(Long idAlvo, String meuKeycloakId) {
+        return restClient.get()
+                .uri("http://localhost:8082/internal/v1/usuarios/perfil/" + idAlvo)
+                .header("X-User-Id", meuKeycloakId) // Passamos o meu ID para a Core checar o vínculo
+                .retrieve()
+                .body(UsuarioPerfilDTO.class);
     }
 
-    public UsuarioPerfilDTO buscarSeguidoresDeUsuario(Long idUsuario, String subject) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'buscarSeguidoresDeUsuario'");
+    public void atualizarPerfil(String keycloakId, UsuarioUpdateDTO dto) {
+            restClient.put()
+                    .uri("http://localhost:8082/internal/v1/usuarios/me")
+                    .header("X-User-Id", keycloakId)
+                    .body(dto)
+                    .retrieve()
+                    .toBodilessEntity();
+    }
+
+    public void removerPerfil(String keycloakId) {
+        restClient.delete()
+                .uri("http://localhost:8082/internal/v1/usuarios/me")
+                .header("X-User-Id", keycloakId)
+                .retrieve()
+                .toBodilessEntity();
+    }
+
+    public PaginaBffDTORecive<UsuarioResumoDTO> listagemSeguidores(Long idUsuario, int pagina) {
+        return restClient.get()
+                .uri("http://localhost:8082/internal/v1/usuarios/" + idUsuario + "/seguidores?pagina=" + pagina)
+                .retrieve()
+                .body(new ParameterizedTypeReference<PaginaBffDTORecive<UsuarioResumoDTO>>() {});
     }
 }

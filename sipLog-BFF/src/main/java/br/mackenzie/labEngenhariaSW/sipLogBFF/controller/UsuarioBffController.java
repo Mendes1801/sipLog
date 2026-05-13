@@ -9,8 +9,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.UsuarioPerfilDTO;
+import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.UsuarioResumoDTO;
+import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.UsuarioUpdateDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.recive.PaginaBffDTORecive;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.service.UsuarioBffService;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -42,30 +45,32 @@ public class UsuarioBffController {
         return ResponseEntity.ok(perfil);
     }
 
-    // Atualiza/edita o meu perfil
+    //  Atualizar perfil do usuário logado
     @PutMapping("/me")
-    public ResponseEntity<Void> putMeuPerfil(@AuthenticationPrincipal Jwt principal, @RequestBody UsuarioPerfilDTO entity) {
-        //TODO: process PUT request
+    public ResponseEntity<Void> atualizarMeuPerfil(
+            @AuthenticationPrincipal Jwt principal, 
+            @RequestBody UsuarioUpdateDTO dto) {
         
+        usuarioService.atualizarPerfil(principal.getSubject(), dto);
         return ResponseEntity.ok().build();
     }
 
-    //Deleta meu perfil
+    // Deletar conta do usuário logado
     @DeleteMapping("/me")
-    public ResponseEntity<Void> deleteMeuPerfil(@AuthenticationPrincipal Jwt principal, @RequestBody UsuarioPerfilDTO entity) {
-        //TODO: process DEL request
-        
-        return ResponseEntity.ok().build();
+    public ResponseEntity<Void> deletarMinhaConta(@AuthenticationPrincipal Jwt principal) {
+        usuarioService.removerPerfil(principal.getSubject());
+        return ResponseEntity.noContent().build();
     }
 
-    // Buscar os seguidores de um usuario
+    // Listar seguidores de um usuário específico (Paginado)
     @GetMapping("/{idUsuario}/seguidores")
-    public ResponseEntity<PaginaBffDTORecive<UsuarioPerfilDTO>> getSeguidoresUser(@PathVariable Long idUsuario, @AuthenticationPrincipal Jwt principal) {
-        //TODO: process GET request seguidores
-
-        return ResponseEntity.ok(null);
+    public ResponseEntity<PaginaBffDTORecive<UsuarioResumoDTO>> getSeguidores(
+            @PathVariable Long idUsuario,
+            @RequestParam(defaultValue = "0") int pagina) {
+        
+        PaginaBffDTORecive<UsuarioResumoDTO> seguidores = usuarioService.listagemSeguidores(idUsuario, pagina);
+        return ResponseEntity.ok(seguidores);
     }
-
 
 
     // ITEM 1: Buscar o perfil de um amigo

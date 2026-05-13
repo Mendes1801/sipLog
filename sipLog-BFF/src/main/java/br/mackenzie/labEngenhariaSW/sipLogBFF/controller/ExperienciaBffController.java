@@ -19,6 +19,7 @@ import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.NovaExperienciaDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.NovoComentarioDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.recive.PaginaBffDTORecive;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.service.ExperienciaBffService;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/v1/experiencias")
@@ -32,7 +33,7 @@ public class ExperienciaBffController {
 
     // ITEM 3: Criar Experiência (O "Postar" final)
     @PostMapping
-    public ResponseEntity<Void> criarSip(@RequestBody NovaExperienciaDTO dto, @AuthenticationPrincipal Jwt principal) {
+    public ResponseEntity<Void> criarSip(@Valid @RequestBody NovaExperienciaDTO dto, @AuthenticationPrincipal Jwt principal) {
         experienciaService.criarPostagem(dto, principal.getSubject());
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
