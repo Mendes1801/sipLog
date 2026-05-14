@@ -1,6 +1,7 @@
 package br.mackenzie.labEngenhariaSW.sipLogBFF.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
 
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.ComentarioResponseDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.NovaExperienciaDTO;
@@ -10,9 +11,18 @@ import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.recive.PaginaBffDTORecive;
 @Service
 public class ExperienciaBffService {
 
-    public void criarPostagem(NovaExperienciaDTO dto, String subject) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'criarPostagem'");
+    private final RestClient restClient;
+
+    public ExperienciaBffService(RestClient restClient) {
+        this.restClient = restClient;
+    }
+
+    public void registrarNovaExperiencia(NovaExperienciaDTO dto, String keycloakId) {
+        restClient.post()
+                .uri("http://localhost:8082/internal/v1/experiencias")
+                .body(dto)
+                .retrieve()
+                .toBodilessEntity();
     }
 
     public void alternarCurtida(Long id, String subject) {

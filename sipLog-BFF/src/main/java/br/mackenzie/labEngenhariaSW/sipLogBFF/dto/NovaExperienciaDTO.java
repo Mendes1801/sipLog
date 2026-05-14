@@ -19,6 +19,9 @@ public record NovaExperienciaDTO(
     @Size(max = 1000, message = "O comentário da experiência é muito longo")
     String comentario,
 
+    @NotNull(message = "A visibilidade é obrigatória")
+    String visibilidade, // "PUBLICA", "AMIGOS", "PRIVADA"
+
     @NotBlank(message = "A URL da foto é obrigatória")
     String fotoPostUrl,
 

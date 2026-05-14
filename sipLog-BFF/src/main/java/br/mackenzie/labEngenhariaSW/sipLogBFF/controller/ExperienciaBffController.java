@@ -33,21 +33,21 @@ public class ExperienciaBffController {
 
     // ITEM 3: Criar Experiência (O "Postar" final)
     @PostMapping
-    public ResponseEntity<Void> criarSip(@Valid @RequestBody NovaExperienciaDTO dto, @AuthenticationPrincipal Jwt principal) {
-        experienciaService.criarPostagem(dto, principal.getSubject());
+    public ResponseEntity<Void> registrarNovaExperiencia(@Valid @RequestBody NovaExperienciaDTO dto, @AuthenticationPrincipal Jwt principal) {
+        experienciaService.registrarNovaExperiencia(dto, principal.getSubject());
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     // Deletar Experiência (Somente o autor pode deletar)
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletarSip(@PathVariable Long id, @AuthenticationPrincipal Jwt principal) {
+    public ResponseEntity<Void> deletarExperiencia(@PathVariable Long id, @AuthenticationPrincipal Jwt principal) {
         experienciaService.deletarPostagem(id, principal.getSubject());
         return ResponseEntity.ok().build();
     }
 
     // Editar Experiência (Somente o autor pode editar)
     @PutMapping("/{id}")
-    public ResponseEntity<Void> editarSip(
+    public ResponseEntity<Void> editarExperiencia(
             @PathVariable Long id, 
             @RequestBody NovaExperienciaDTO dto, 
             @AuthenticationPrincipal Jwt principal) {

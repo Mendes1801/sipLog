@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Experiencia;
+import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Experiencia.Visibilidade;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Usuario;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.repository.CurtidaRepository;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.repository.ExperienciaRepository;
@@ -54,22 +55,21 @@ public class FeedService {
     }
 
     public Page<Experiencia> buscarFeedGlobal(int pagina) {
-        
         Pageable paginacao = PageRequest.of(pagina, 20); 
-        return experienciaRepository.findAllByOrderByDataCriacaoDesc(paginacao);
-
+        
+        // Feed Global SÓ pode mostrar postagens PÚBLICAS
+        return experienciaRepository.findByVisibilidadeOrderByDataCriacaoDesc(Visibilidade.PUBLICA, paginacao);
     }
 
     public Page<Experiencia> buscarFeedAmigos(String meuKeycloakId, int pagina) {
-
-        //Pega o usuario pelo ID do Keycloak
         Usuario usuario = usuarioRepository.findByKeycloakId(meuKeycloakId)
             .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-        // Define a paginação (20 itens por página)
         Pageable paginacao = PageRequest.of(pagina, 20); 
 
-        //Retorna as experiências onde o ID do autor esteja dentro da lista de pessoas que o meu usuário segue
-        return experienciaRepository.findFeedAmigos(usuario.getId(), paginacao);
+        // Feed de Amigos mostra PUBLICA e AMIGOS (Bloqueia as PRIVADAS dos meus amigos)
+        List<Visibilidade> visibilidadesPermitidas = List.of(Visibilidade.PUBLICA, Visibilidade.AMIGOS);
+
+        return experienciaRepository.findFeedAmigos(usuario.getId(), visibilidadesPermitidas, paginacao);
     }
 }
