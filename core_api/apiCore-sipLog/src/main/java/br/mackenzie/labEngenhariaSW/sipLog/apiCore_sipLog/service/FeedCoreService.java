@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Experiencia;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Experiencia.Visibilidade;
@@ -18,18 +19,20 @@ import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.repository.SeguidorRep
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.repository.UsuarioRepository;
 
 @Service
-public class FeedService {
+public class FeedCoreService {
     
     final ExperienciaRepository experienciaRepository;
     final UsuarioRepository usuarioRepository;
     final CurtidaRepository curtidaRepository;
     final SeguidorRepository seguidorRepository;
+    final UsuarioService usuarioService;
 
-    public FeedService(ExperienciaRepository experienciaRepository, SeguidorRepository seguidorRepository, UsuarioRepository usuarioRepository, CurtidaRepository curtidaRepository) {
+    public FeedCoreService(ExperienciaRepository experienciaRepository, SeguidorRepository seguidorRepository, UsuarioRepository usuarioRepository, CurtidaRepository curtidaRepository, UsuarioService usuarioService) {
         this.experienciaRepository = experienciaRepository;
         this.seguidorRepository = seguidorRepository;
         this.usuarioRepository = usuarioRepository;
         this.curtidaRepository = curtidaRepository;
+        this.usuarioService = usuarioService;
     }
 
     public Page<Experiencia> buscarMeuFeed(String keycloakId, int pagina) {
@@ -77,18 +80,34 @@ public class FeedService {
     }
 
 
+    @Transactional(readOnly = true)
     public Page<Experiencia> buscarFeedDeTerceiro(String meuKeycloakId, Long idAlvo, int pagina) {
-        Usuario eu = usuarioRepository.findByKeycloakId(meuKeycloakId).orElseThrow();
+        // Busca quem é o usuário que está fazendo a requisição
+        Usuario eu = usuarioService.getUsuarioPerfil(meuKeycloakId);
         Pageable paginacao = PageRequest.of(pagina, 20);
         
-        // Verifica se eu sigo esse usuário alvo
+        // Regra de Negócio: Eu sigo essa pessoa?
         boolean sigoEle = seguidorRepository.existsBySeguidorIdAndSeguidoId(eu.getId(), idAlvo);
 
-        // Se eu sigo ele, posso ver as PUBLICAS e as AMIGOS. Se não sigo, só vejo as PUBLICAS.
-        List<Visibilidade> visibilidades = sigoEle 
-            ? List.of(Visibilidade.PUBLICA, Visibilidade.AMIGOS) 
-            : List.of(Visibilidade.PUBLICA);
+        // Define a lista de visibilidades permitidas
+        List<Visibilidade> visibilidadesPermitidas;
+        
+        if (eu.getId().equals(idAlvo)) {
+            // Se eu estou visitando minha própria estante por essa rota: vejo TUDO
+            visibilidadesPermitidas = List.of(Visibilidade.PUBLICA, Visibilidade.AMIGOS, Visibilidade.PRIVADA);
+        } else if (sigoEle) {
+            // Se eu sigo ele: vejo o que é Público e o que é para Amigos
+            visibilidadesPermitidas = List.of(Visibilidade.PUBLICA, Visibilidade.AMIGOS);
+        } else {
+            // Se sou um estranho: vejo apenas o que é Público
+            visibilidadesPermitidas = List.of(Visibilidade.PUBLICA);
+        }
 
-        return experienciaRepository.findByUsuarioIdAndVisibilidadeInOrderByDataCriacaoDesc(idAlvo, visibilidades, paginacao);
+        // Chama o Repository que criamos no passo anterior
+        return experienciaRepository.findByUsuarioIdAndVisibilidadeInOrderByDataCriacaoDesc(
+                idAlvo, 
+                visibilidadesPermitidas, 
+                paginacao
+        );
     }
 }

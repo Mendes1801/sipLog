@@ -8,21 +8,22 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.dto.dtoGet.FeedItemDTO;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Experiencia;
-import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.service.FeedService;
+import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.service.FeedCoreService;
 
 @RestController
 @RequestMapping("/internal/v1/feed")
 public class FeedCoreController {
 
-    private FeedService feedService;
+    private FeedCoreService feedService;
 
-    FeedCoreController(FeedService feedService) {
+    FeedCoreController(FeedCoreService feedService) {
         this.feedService = feedService;
     }
 
@@ -188,5 +189,49 @@ public class FeedCoreController {
 
         //Devolve para o BFF! O Spring vai gerar um JSON lindo com a lista e os metadados da página
         return ResponseEntity.ok(paginaDeDtos);
+    }
+
+    @GetMapping("/usuarios/{idUsuario}")
+    public ResponseEntity<Page<FeedItemDTO>> getFeedTerceiro(
+            @PathVariable Long idUsuario,
+            @RequestParam(defaultValue = "0") int pagina,
+            @AuthenticationPrincipal Jwt principal) {
+
+        //O Service aplica a regra de privacidade e retorna as Entidades
+        Page<Experiencia> postagens = feedService.buscarFeedDeTerceiro(
+                principal.getSubject(), // Meu ID do Keycloak
+                idUsuario,              // ID do dono da estante
+                pagina
+        );
+
+        // O Controller transforma a Entidade em DTO
+        // (Aqui usamos o DTO que o BFF espera, ou um similar da Core)
+        Page<FeedItemDTO> dtos = postagens.map(exp -> new FeedItemDTO(
+                exp.getId(),
+                new FeedItemDTO.AutorDTO(
+                        exp.getUsuario().getId(),
+                        exp.getUsuario().getNome(),
+                        exp.getUsuario().getFotoAvatarUrl()
+                ),
+                new FeedItemDTO.BebidaResumoDTO(
+                        exp.getBebida().getId(),
+                        exp.getBebida().getNome(),
+                        exp.getBebida().getCategoria()
+                ),
+                new FeedItemDTO.ExperienciaFeedDTO(
+                        exp.getNota(),
+                        exp.getComentario(),
+                        exp.getFotoPostUrl(),
+                        exp.getDataCriacao().toString(),
+                        exp.getLocalizacao()
+                ),
+                new FeedItemDTO.EngajamentoDTO(
+                        false, // Para simplificar, não verificamos se o terceiro curtiu ou não
+                        exp.getTotalCurtidas() != null ? exp.getTotalCurtidas() : 0,
+                        exp.getTotalComentarios() != null ? exp.getTotalComentarios() : 0
+                )
+        ));
+
+        return ResponseEntity.ok(dtos);
     }
 }
