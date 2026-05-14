@@ -7,6 +7,7 @@ import org.springframework.web.client.RestClient;
 
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.UsuarioPerfilDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.UsuarioResumoDTO;
+import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.UsuarioSyncDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.UsuarioUpdateDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.recive.PaginaBffDTORecive;
 
@@ -46,23 +47,16 @@ public class UsuarioBffService {
                 .toBodilessEntity(); // Não precisamos ler o corpo da resposta, só garantir o Status 200/201
     }
 
-    /**
-     * DTO local apenas para formatar o JSON de envio
-     */
-    public record UsuarioSyncDTO(String keycloakId, String nome, String email, String fotoAvatarUrl) {}
-
     
     // ========================================================================
     // Esqueletos dos próximos métodos do Item 1 (Para o Controller não quebrar)
     // ========================================================================
 
 
-
     public void alternarSeguirUsuario(String meuKeycloakId, Long idAlvo) {
         // Faz o POST simples para a Core API gerenciar o Seguidor
         restClient.post()
                 .uri("http://localhost:8082/internal/v1/usuarios/" + idAlvo + "/seguir")
-                .header("X-User-Id", meuKeycloakId) // Exemplo de repasse manual, ou via interceptor
                 .retrieve()
                 .toBodilessEntity();
     }
@@ -70,8 +64,7 @@ public class UsuarioBffService {
     //Busca o perfil do usuário logado (Meu Perfil)
     public UsuarioPerfilDTO buscarMeuPerfil(String meuKeycloakId) {
         return restClient.get()
-                .uri("http://localhost:8082/internal/v1/usuarios/perfil/me")
-                .header("X-User-Id", meuKeycloakId)
+                .uri("http://localhost:8082/internal/v1/usuarios/me")
                 .retrieve()
                 .body(UsuarioPerfilDTO.class);
     }
@@ -81,7 +74,6 @@ public class UsuarioBffService {
     public UsuarioPerfilDTO buscarPerfilDeTerceiro(Long idAlvo, String meuKeycloakId) {
         return restClient.get()
                 .uri("http://localhost:8082/internal/v1/usuarios/perfil/" + idAlvo)
-                .header("X-User-Id", meuKeycloakId) // Passamos o meu ID para a Core checar o vínculo
                 .retrieve()
                 .body(UsuarioPerfilDTO.class);
     }
@@ -89,7 +81,6 @@ public class UsuarioBffService {
     public void atualizarPerfil(String keycloakId, UsuarioUpdateDTO dto) {
             restClient.put()
                     .uri("http://localhost:8082/internal/v1/usuarios/me")
-                    .header("X-User-Id", keycloakId)
                     .body(dto)
                     .retrieve()
                     .toBodilessEntity();
@@ -98,7 +89,6 @@ public class UsuarioBffService {
     public void removerPerfil(String keycloakId) {
         restClient.delete()
                 .uri("http://localhost:8082/internal/v1/usuarios/me")
-                .header("X-User-Id", keycloakId)
                 .retrieve()
                 .toBodilessEntity();
     }

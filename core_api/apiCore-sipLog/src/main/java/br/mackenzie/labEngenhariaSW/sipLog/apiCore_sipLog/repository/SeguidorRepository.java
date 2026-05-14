@@ -1,5 +1,9 @@
 package br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.repository;
 
+import java.util.Optional;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Seguidor;
@@ -16,4 +20,8 @@ public interface SeguidorRepository extends JpaRepository<Seguidor, Long> {
 
     // Verifica se a relação já existe (para saber se pinta o botão de 'Seguindo' ou 'Seguir')
     boolean existsBySeguidorAndSeguido(Usuario seguidor, Usuario seguido);
+
+    Page<Usuario> findUsuariosQueSeguem(Long idUsuario, Pageable paginacao);
+
+    Optional<Seguidor> findBySeguidorIdAndSeguidoId(Long id, Long id2);
 }

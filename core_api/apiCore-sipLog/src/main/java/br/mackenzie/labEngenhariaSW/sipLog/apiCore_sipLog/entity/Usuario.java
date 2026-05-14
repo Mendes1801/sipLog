@@ -19,4 +19,5 @@ public class Usuario {
     private String username;
     private String bio;
     private String fotoAvatarUrl;
+    private String email;
 }
