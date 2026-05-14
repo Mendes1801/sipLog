@@ -2,7 +2,7 @@ package br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.dto.dtoGet;
 
 import java.util.Map;
 
-public record DetalheBebidaDTO(
+public record BebidaDetalheDTO(
         Long idBebida,
         String nome,
         String fabricante,

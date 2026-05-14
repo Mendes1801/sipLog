@@ -38,4 +38,9 @@ public interface ExperienciaRepository extends JpaRepository<Experiencia, Long> 
            "(SELECT s.seguido.id FROM Seguidor s WHERE s.seguidor.id = :meuUsuarioId) " +
            "ORDER BY e.dataCriacao DESC")
     Page<Experiencia> findFeedAmigos(@Param("meuUsuarioId") Long meuUsuarioId, Pageable pageable);
+
+
+    // O banco de dados é extremamente rápido para fazer operações de AVG (Média)
+    @Query("SELECT AVG(e.nota) FROM Experiencia e WHERE e.bebida.id = :bebidaId")
+    Double calcularMediaGlobalDaBebida(@Param("bebidaId") Long bebidaId);
 }
