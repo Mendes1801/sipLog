@@ -14,6 +14,7 @@ import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Experiencia.Vis
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Usuario;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.repository.CurtidaRepository;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.repository.ExperienciaRepository;
+import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.repository.SeguidorRepository;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.repository.UsuarioRepository;
 
 @Service
@@ -22,9 +23,11 @@ public class FeedService {
     final ExperienciaRepository experienciaRepository;
     final UsuarioRepository usuarioRepository;
     final CurtidaRepository curtidaRepository;
+    final SeguidorRepository seguidorRepository;
 
-    public FeedService(ExperienciaRepository experienciaRepository, UsuarioRepository usuarioRepository, CurtidaRepository curtidaRepository) {
+    public FeedService(ExperienciaRepository experienciaRepository, SeguidorRepository seguidorRepository, UsuarioRepository usuarioRepository, CurtidaRepository curtidaRepository) {
         this.experienciaRepository = experienciaRepository;
+        this.seguidorRepository = seguidorRepository;
         this.usuarioRepository = usuarioRepository;
         this.curtidaRepository = curtidaRepository;
     }
@@ -71,5 +74,21 @@ public class FeedService {
         List<Visibilidade> visibilidadesPermitidas = List.of(Visibilidade.PUBLICA, Visibilidade.AMIGOS);
 
         return experienciaRepository.findFeedAmigos(usuario.getId(), visibilidadesPermitidas, paginacao);
+    }
+
+
+    public Page<Experiencia> buscarFeedDeTerceiro(String meuKeycloakId, Long idAlvo, int pagina) {
+        Usuario eu = usuarioRepository.findByKeycloakId(meuKeycloakId).orElseThrow();
+        Pageable paginacao = PageRequest.of(pagina, 20);
+        
+        // Verifica se eu sigo esse usuário alvo
+        boolean sigoEle = seguidorRepository.existsBySeguidorIdAndSeguidoId(eu.getId(), idAlvo);
+
+        // Se eu sigo ele, posso ver as PUBLICAS e as AMIGOS. Se não sigo, só vejo as PUBLICAS.
+        List<Visibilidade> visibilidades = sigoEle 
+            ? List.of(Visibilidade.PUBLICA, Visibilidade.AMIGOS) 
+            : List.of(Visibilidade.PUBLICA);
+
+        return experienciaRepository.findByUsuarioIdAndVisibilidadeInOrderByDataCriacaoDesc(idAlvo, visibilidades, paginacao);
     }
 }

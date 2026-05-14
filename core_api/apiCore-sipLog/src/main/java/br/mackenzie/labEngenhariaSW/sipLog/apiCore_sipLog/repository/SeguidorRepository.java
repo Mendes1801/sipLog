@@ -24,4 +24,6 @@ public interface SeguidorRepository extends JpaRepository<Seguidor, Long> {
     Page<Usuario> findUsuariosQueSeguem(Long idUsuario, Pageable paginacao);
 
     Optional<Seguidor> findBySeguidorIdAndSeguidoId(Long id, Long id2);
+
+    boolean existsBySeguidorIdAndSeguidoId(Long id, Long idAlvo);
 }
