@@ -4,6 +4,7 @@ public record NovaExperienciaDTO(
         Long idBebida,
         Double nota,
         String comentario,
-        String data, // Pode usar LocalDate se preferir tipar fortemente a data
-        String local
+        String fotoPostUrl,
+        String local,
+        String visibilidade
 ) {}

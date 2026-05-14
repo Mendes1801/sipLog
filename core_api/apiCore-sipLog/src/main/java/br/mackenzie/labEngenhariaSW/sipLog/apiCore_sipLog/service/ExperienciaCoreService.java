@@ -6,47 +6,54 @@ import org.springframework.stereotype.Service;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.dto.dtoPost.NovaExperienciaDTO;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Bebida;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Experiencia;
+import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Experiencia.Visibilidade;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Usuario;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.exception.AcessoNegadoException;
-import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.repository.BebidaRepository;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.repository.ExperienciaRepository;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.repository.SeguidorRepository;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.repository.UsuarioRepository;
+import jakarta.transaction.Transactional;
 
 
 @Service
-public class ExperienciaService {
+public class ExperienciaCoreService {
     
     private final ExperienciaRepository experienciaRepository;
     private final UsuarioRepository usuarioRepository;
-    private final BebidaRepository bebidaRepository;
     private final SeguidorRepository seguidorRepository;
+    private final UsuarioService usuarioService;
+    private final BebidaCoreService bebidaService;
 
-    ExperienciaService(UsuarioRepository usuarioRepository,SeguidorRepository seguidorRepository, BebidaRepository bebidaRepository, ExperienciaRepository experienciaRepository) {
+    ExperienciaCoreService(UsuarioRepository usuarioRepository,SeguidorRepository seguidorRepository, ExperienciaRepository experienciaRepository, UsuarioService usuarioService, BebidaCoreService bebidaService) {
         this.usuarioRepository = usuarioRepository;
-        this.bebidaRepository = bebidaRepository;
         this.experienciaRepository = experienciaRepository;
         this.seguidorRepository = seguidorRepository;
+        this.usuarioService = usuarioService;
+        this.bebidaService = bebidaService;
     }
 
     // Método para registrar uma nova experiência
+    @Transactional
     public Experiencia registrarExperiencia(String keycloakId, NovaExperienciaDTO dto) {
 
+        
         //Busca o usuário no banco usando o keycloakId
-        Usuario usuario = usuarioRepository.findByKeycloakId(keycloakId)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+        Usuario usuario = usuarioService.getUsuarioPerfil(keycloakId);
+        
+        //Busca bebida no banco usando o id da bebida que veio no DTO
+        Bebida bebida = bebidaService.buscarPorId(dto.idBebida());
 
         Experiencia experiencia = new Experiencia();
+
         experiencia.setUsuario(usuario);
-
-        Bebida bebida = bebidaRepository.findById(dto.idBebida())
-                .orElseThrow(() -> new RuntimeException("Bebida não encontrada"));
-
         experiencia.setBebida(bebida);
+        experiencia.setVisibilidade(Visibilidade.valueOf(dto.visibilidade().toUpperCase()));
         experiencia.setNota(dto.nota());
         experiencia.setComentario(dto.comentario());
+        experiencia.setFotoPostUrl(dto.fotoPostUrl());
+        experiencia.setLocalizacao(dto.local());
 
-        return experienciaRepository.save(experiencia); // retornar a experiência criada (ou algum DTO de resposta)
+        return experienciaRepository.save(experiencia);
     }
 
 
@@ -77,6 +84,48 @@ public class ExperienciaService {
         }
         
         return exp;
+    }
+
+
+    @Transactional
+    public Experiencia editarExperiencia(Long idPost, NovaExperienciaDTO dto, String keycloakId) {
+        Experiencia experiencia = buscarPostagemValidandoAutoria(idPost, keycloakId);
+
+        // Atualiza os campos editáveis
+        experiencia.setNota(dto.nota());
+        experiencia.setComentario(dto.comentario());
+        experiencia.setLocalizacao(dto.local());
+        experiencia.setVisibilidade(Visibilidade.valueOf(dto.visibilidade().toUpperCase()));
+        // Bebida e Foto normalmente não são editáveis após o post, mas você pode habilitar se quiser.
+
+        return experienciaRepository.save(experiencia);
+    }
+
+    @Transactional
+    public void deletarExperiencia(Long idPost, String keycloakId) {
+        Experiencia experiencia = buscarPostagemValidandoAutoria(idPost, keycloakId);
+        experienciaRepository.delete(experiencia);
+    }
+
+// METODOS DE APOIO
+
+
+     // Busca o post e GARANTE que quem está pedindo é o dono dele.
+     // Impede ataques onde um usuário tenta editar/deletar o post de outro.
+    public Experiencia buscarPostagemValidandoAutoria(Long idPost, String keycloakId) {
+        Experiencia experiencia = experienciaRepository.findById(idPost)
+                .orElseThrow(() -> new RuntimeException("Experiência não encontrada."));
+
+        if (!experiencia.getUsuario().getKeycloakId().equals(keycloakId)) {
+            throw new SecurityException("Você não tem permissão para alterar esta postagem.");
+        }
+
+        return experiencia;
+    }
+
+    public Experiencia buscarPorId(Long idPost) {
+        return experienciaRepository.findById(idPost)
+                .orElseThrow(() -> new RuntimeException("Experiência não encontrada."));
     }
 
 }

@@ -7,10 +7,15 @@ import java.time.LocalDateTime;
 
 import org.hibernate.annotations.Formula;
 
+
 @Entity
 @Table(name = "tb_experiencia")
 @Data //Cria os getters e setters automaticamente
 public class Experiencia {
+
+    public enum Visibilidade {
+    PUBLICA, AMIGOS, PRIVADA
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,13 +29,20 @@ public class Experiencia {
     @JoinColumn(name = "bebida_id", nullable = false)
     private Bebida bebida;
 
-    private String visibilidade; // "PUBLICA", "AMIGOS", "PRIVADA"
+    @Enumerated(EnumType.STRING)
+    private Visibilidade visibilidade; // Visibilidade enum
+
     private Double nota;
     private String comentario;
     private String fotoPostUrl;
     private String localizacao;
 
-    private LocalDateTime dataCriacao = LocalDateTime.now();
+    @Column(updatable = false)
+    private LocalDateTime dataCriacao;
+    @PrePersist
+    protected void onCreate() {
+        this.dataCriacao = LocalDateTime.now();
+    }
 
     // Conta quantas curtidas estão ligadas ao ID deste post.
     @Formula("(SELECT COUNT(c.id) FROM tb_curtida c WHERE c.experiencia_id = id)")
