@@ -1,14 +1,24 @@
 package br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.service;
 
 
+import java.util.Optional;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.dto.dtoPost.NovaExperienciaDTO;
+import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.dto.dtoPost.NovoComentarioDTO;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Bebida;
+import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Comentario;
+import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Curtida;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Experiencia;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Experiencia.Visibilidade;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Usuario;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.exception.AcessoNegadoException;
+import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.repository.ComentarioRepository;
+import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.repository.CurtidaRepository;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.repository.ExperienciaRepository;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.repository.SeguidorRepository;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.repository.UsuarioRepository;
@@ -23,13 +33,17 @@ public class ExperienciaCoreService {
     private final SeguidorRepository seguidorRepository;
     private final UsuarioService usuarioService;
     private final BebidaCoreService bebidaService;
+    private final CurtidaRepository curtidaRepository;
+    private final ComentarioRepository comentarioRepository;
 
-    ExperienciaCoreService(UsuarioRepository usuarioRepository,SeguidorRepository seguidorRepository, ExperienciaRepository experienciaRepository, UsuarioService usuarioService, BebidaCoreService bebidaService) {
+    ExperienciaCoreService(UsuarioRepository usuarioRepository, CurtidaRepository curtidaRepository, ComentarioRepository comentarioRepository, SeguidorRepository seguidorRepository, ExperienciaRepository experienciaRepository, UsuarioService usuarioService, BebidaCoreService bebidaService) {
         this.usuarioRepository = usuarioRepository;
         this.experienciaRepository = experienciaRepository;
         this.seguidorRepository = seguidorRepository;
         this.usuarioService = usuarioService;
         this.bebidaService = bebidaService;
+        this.curtidaRepository = curtidaRepository;
+        this.comentarioRepository = comentarioRepository;
     }
 
     // Método para registrar uma nova experiência
@@ -128,4 +142,47 @@ public class ExperienciaCoreService {
                 .orElseThrow(() -> new RuntimeException("Experiência não encontrada."));
     }
 
+    @Transactional
+    public void alternarCurtida(Long idPost, String keycloakId) {
+        Usuario eu = usuarioService.getUsuarioPerfil(keycloakId);
+        Experiencia post = buscarPorId(idPost);
+
+        // Verifica se a curtida já existe
+        Optional<Curtida> curtidaExistente = curtidaRepository.findByUsuarioIdAndExperienciaId(eu.getId(), post.getId());
+
+        if (curtidaExistente.isPresent()) {
+            // Se já curtiu, o "toggle" significa descurtir (Deletar)
+            curtidaRepository.delete(curtidaExistente.get());
+        } else {
+            // Se não curtiu, cria a nova curtida
+            Curtida novaCurtida = new Curtida();
+            novaCurtida.setUsuario(eu);
+            novaCurtida.setExperiencia(post);
+            curtidaRepository.save(novaCurtida);
+            
+            // TODO Futuro: Disparar evento para gerar Notificação para o dono do post
+        }
+    }
+
+    @Transactional
+    public Comentario adicionarComentario(Long idPost, NovoComentarioDTO dto, String keycloakId) {
+        Usuario meuUsuario = usuarioService.buscarPorKeycloakId(keycloakId);
+        Experiencia post = buscarPorId(idPost);
+
+        Comentario comentario = new Comentario();
+
+        comentario.setTexto(dto.texto());
+        comentario.setUsuario(meuUsuario);
+        comentario.setExperiencia(post);
+        // A data de criação será preenchida automaticamente pelo @PrePersist da entidade
+
+        return comentarioRepository.save(comentario);
+        // TODO Futuro: Disparar evento para gerar Notificação para o dono do post
+    }
+
+    public Page<Comentario> listarComentarios(Long idPost, int pagina) {
+        // Traz os comentários do mais antigo para o mais novo (Padrão de UI do Instagram/Threads)
+        Pageable paginacao = PageRequest.of(pagina, 30); 
+        return comentarioRepository.findByExperienciaIdOrderByDataCriacaoAsc(idPost, paginacao);
+    }
 }

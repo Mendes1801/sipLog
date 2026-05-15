@@ -1,6 +1,7 @@
 package br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -19,5 +20,7 @@ public interface CurtidaRepository extends JpaRepository<Curtida, Long> {
             @Param("usuarioId") Long usuarioId, 
             @Param("experienciaIds") List<Long> experienciaIds
     );
+
+    Optional<Curtida> findByUsuarioIdAndExperienciaId(Long id, Long id2);
 
 }

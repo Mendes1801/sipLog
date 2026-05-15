@@ -1,12 +1,17 @@
 package br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.controller;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.RestController;
 
+import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.dto.dtoGet.ComentarioDTO;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.dto.dtoGet.RegistroExperienciaDTO;
+import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.dto.dtoGet.UsuarioResumoDTO;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.dto.dtoPost.NovaExperienciaDTO;
+import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.dto.dtoPost.NovoComentarioDTO;
+import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Comentario;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Experiencia;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.service.ExperienciaCoreService;
 import jakarta.validation.Valid;
@@ -77,6 +82,53 @@ public class ExperienciaCoreController {
         
         experienciaService.editarExperiencia(id, dto, principal.getSubject());
         return ResponseEntity.ok().build();
+    }
+
+
+     //Curtir ou descurtir um Sip (Se já tiver curtido, descurte. Se não tiver curtido, curta)
+    @PostMapping("/{id}/curtir")
+    public ResponseEntity<Void> alternarCurtida(
+            @PathVariable Long id,
+            @AuthenticationPrincipal Jwt principal) {
+        
+        experienciaService.alternarCurtida(id, principal.getSubject());
+        return ResponseEntity.ok().build();
+    }
+
+    //Adicionar um comentario em uma experiencia
+    @PostMapping("/{id}/comentarios")
+    public ResponseEntity<Void> adicionarComentario(
+            @PathVariable Long id,
+            @RequestBody NovoComentarioDTO comentario,
+            @AuthenticationPrincipal Jwt principal) {
+        
+        experienciaService.adicionarComentario(id, comentario, principal.getSubject());
+        return ResponseEntity.ok().build();
+    }
+
+
+    //Listar Comentários
+    @GetMapping("/{id}/comentarios")
+    public ResponseEntity<Page<ComentarioDTO>> listarComentarios(
+            @PathVariable Long id, 
+            @RequestParam(defaultValue = "0") int pagina) {
+        
+        // Service devolve as Entidades
+        Page<Comentario> entidades = experienciaService.listarComentarios(id, pagina);
+
+        // Controller mapeia para o DTO esperado
+        Page<ComentarioDTO> dtos = entidades.map(comentarioEntity -> new ComentarioDTO(
+            comentarioEntity.getId(),
+            comentarioEntity.getTexto(),
+            comentarioEntity.getDataCriacao(),
+            new UsuarioResumoDTO(
+                comentarioEntity.getUsuario().getId(),
+                comentarioEntity.getUsuario().getNome(),
+                comentarioEntity.getUsuario().getFotoAvatarUrl()
+            )
+        ));
+
+        return ResponseEntity.ok(dtos);
     }
 
     //Deletar o Sip

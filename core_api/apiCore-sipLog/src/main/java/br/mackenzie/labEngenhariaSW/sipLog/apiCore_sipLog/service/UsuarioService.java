@@ -114,4 +114,9 @@ public class UsuarioService {
         // para trazer os Usuários que seguem este idUsuario.
         return seguidorRepository.findUsuariosQueSeguem(idUsuario, paginacao); 
     }
+
+    public Usuario buscarPorKeycloakId(String keycloakId) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'buscarPorKeycloakId'");
+    }
 }

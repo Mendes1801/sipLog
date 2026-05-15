@@ -1,14 +1,12 @@
 package br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "tb_comentario")
-@Getter
-@Setter
+@Data
 public class Comentario {
 
     @Id
@@ -25,6 +23,11 @@ public class Comentario {
 
     @Column(nullable = false, length = 500)
     private String texto;
-
-    private LocalDateTime dataCriacao = LocalDateTime.now();
+    
+    @Column(updatable = false)
+    private LocalDateTime dataCriacao;
+    @PrePersist
+    protected void onCreate() {
+        this.dataCriacao = LocalDateTime.now();
+    }
 }
