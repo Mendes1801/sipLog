@@ -43,13 +43,12 @@ public class BebidaBffService {
 
 
     //3. Criação Colaborativa de Nova Bebida
-    public void adicionarBebida(NovaBebidaDTO novaBebida) {
-         restClient.post()
+    public BebidaResumoDTO adicionarBebida(NovaBebidaDTO novaBebida) {
+         return restClient.post()
                 .uri("http://localhost:8082/internal/v1/bebidas")
                 .body(novaBebida) // Envia o JSON com a nova bebida
                 .retrieve()
-                .toBodilessEntity();
-
+                .body(BebidaResumoDTO.class); // Recebemos o objeto com o ID preenchido!
     }
     
 }

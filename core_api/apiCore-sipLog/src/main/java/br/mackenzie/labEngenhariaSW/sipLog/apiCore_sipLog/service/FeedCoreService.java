@@ -25,9 +25,9 @@ public class FeedCoreService {
     final UsuarioRepository usuarioRepository;
     final CurtidaRepository curtidaRepository;
     final SeguidorRepository seguidorRepository;
-    final UsuarioService usuarioService;
+    final UsuarioCoreService usuarioService;
 
-    public FeedCoreService(ExperienciaRepository experienciaRepository, SeguidorRepository seguidorRepository, UsuarioRepository usuarioRepository, CurtidaRepository curtidaRepository, UsuarioService usuarioService) {
+    public FeedCoreService(ExperienciaRepository experienciaRepository, SeguidorRepository seguidorRepository, UsuarioRepository usuarioRepository, CurtidaRepository curtidaRepository, UsuarioCoreService usuarioService) {
         this.experienciaRepository = experienciaRepository;
         this.seguidorRepository = seguidorRepository;
         this.usuarioRepository = usuarioRepository;

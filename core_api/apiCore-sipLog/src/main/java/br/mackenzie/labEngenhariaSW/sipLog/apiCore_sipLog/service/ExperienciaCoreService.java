@@ -31,12 +31,12 @@ public class ExperienciaCoreService {
     private final ExperienciaRepository experienciaRepository;
     private final UsuarioRepository usuarioRepository;
     private final SeguidorRepository seguidorRepository;
-    private final UsuarioService usuarioService;
+    private final UsuarioCoreService usuarioService;
     private final BebidaCoreService bebidaService;
     private final CurtidaRepository curtidaRepository;
     private final ComentarioRepository comentarioRepository;
 
-    ExperienciaCoreService(UsuarioRepository usuarioRepository, CurtidaRepository curtidaRepository, ComentarioRepository comentarioRepository, SeguidorRepository seguidorRepository, ExperienciaRepository experienciaRepository, UsuarioService usuarioService, BebidaCoreService bebidaService) {
+    ExperienciaCoreService(UsuarioRepository usuarioRepository, CurtidaRepository curtidaRepository, ComentarioRepository comentarioRepository, SeguidorRepository seguidorRepository, ExperienciaRepository experienciaRepository, UsuarioCoreService usuarioService, BebidaCoreService bebidaService) {
         this.usuarioRepository = usuarioRepository;
         this.experienciaRepository = experienciaRepository;
         this.seguidorRepository = seguidorRepository;

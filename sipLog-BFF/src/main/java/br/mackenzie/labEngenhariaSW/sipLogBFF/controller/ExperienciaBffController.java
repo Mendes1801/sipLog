@@ -18,6 +18,7 @@ import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.ComentarioResponseDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.NovaExperienciaDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.NovoComentarioDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.recive.PaginaBffDTORecive;
+import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.response.RegistroExperienciaDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.service.ExperienciaBffService;
 import jakarta.validation.Valid;
 
@@ -47,12 +48,12 @@ public class ExperienciaBffController {
 
     // Editar Experiência (Somente o autor pode editar)
     @PutMapping("/{id}")
-    public ResponseEntity<Void> editarExperiencia(
+    public ResponseEntity<RegistroExperienciaDTO> editarExperiencia(
             @PathVariable Long id, 
             @RequestBody NovaExperienciaDTO dto, 
             @AuthenticationPrincipal Jwt principal) {
-        experienciaService.editarPostagem(id, dto, principal.getSubject());
-        return ResponseEntity.ok().build();
+        RegistroExperienciaDTO response = experienciaService.editarExperiencia(id, dto);        
+        return ResponseEntity.ok(response);
     }
 
     // Deletar comentário (Somente o autor pode deletar)

@@ -7,6 +7,7 @@ import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.ComentarioResponseDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.NovaExperienciaDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.NovoComentarioDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.recive.PaginaBffDTORecive;
+import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.response.RegistroExperienciaDTO;
 
 @Service
 public class ExperienciaBffService {
@@ -17,12 +18,12 @@ public class ExperienciaBffService {
         this.restClient = restClient;
     }
 
-    public void registrarNovaExperiencia(NovaExperienciaDTO dto, String keycloakId) {
-        restClient.post()
+    public RegistroExperienciaDTO registrarNovaExperiencia(NovaExperienciaDTO dto, String keycloakId) {
+        return restClient.post()
                 .uri("http://localhost:8082/internal/v1/experiencias")
                 .body(dto)
                 .retrieve()
-                .toBodilessEntity();
+                .body(RegistroExperienciaDTO.class); // BFF recebe o objeto completo da Core
     }
 
     public void alternarCurtida(Long id, String subject) {
@@ -40,10 +41,6 @@ public class ExperienciaBffService {
         throw new UnsupportedOperationException("Unimplemented method 'buscarComentarios'");
     }
 
-    public void editarPostagem(Long id, NovaExperienciaDTO dto, String subject) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'editarPostagem'");
-    }
 
     public void editarComentario(Long id, Long idComentario, NovoComentarioDTO dto, String subject) {
         // TODO Auto-generated method stub
@@ -58,6 +55,14 @@ public class ExperienciaBffService {
     public void deletarPostagem(Long id, String subject) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'deletarPostagem'");
+    }
+
+    public RegistroExperienciaDTO editarExperiencia(Long id, NovaExperienciaDTO dto) {
+        return restClient.put()
+                .uri("http://localhost:8082/internal/v1/experiencias/" + id)
+                .body(dto)
+                .retrieve()
+                .body(RegistroExperienciaDTO.class); // Devolve o post atualizado
     }
 
 }

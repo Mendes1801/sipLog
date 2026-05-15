@@ -5,11 +5,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.dto.dtoGet.UsuarioResumoDTO;
+import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.dto.dtoGet.PerfilDTO;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.dto.dtoGet.PerfilDTO.UsuarioPerfilDTO;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.dto.dtoPost.UsuarioSyncDTO;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.dto.dtoPut.UsuarioUpdateDTO;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Usuario;
-import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.service.UsuarioService;
+import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.service.UsuarioCoreService;
 
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -29,9 +30,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 public class UsuariosCoreController {
     
 
-    private final UsuarioService usuarioService;
+    private final UsuarioCoreService usuarioService;
 
-    UsuariosCoreController(UsuarioService usuarioService) {
+    UsuariosCoreController(UsuarioCoreService usuarioService) {
         this.usuarioService = usuarioService;
     }
 
@@ -54,11 +55,23 @@ public class UsuariosCoreController {
 
     // Atualizar Meu Perfil
     @PutMapping("/me")
-    public ResponseEntity<Void> atualizarMeuPerfil(
+    public ResponseEntity<PerfilDTO> atualizarMeuPerfil(
             @AuthenticationPrincipal Jwt principal, 
             @RequestBody UsuarioUpdateDTO dto) {
-        usuarioService.atualizarPerfil(principal.getSubject(), dto);
-        return ResponseEntity.ok().build();
+        Usuario usuario = usuarioService.atualizarPerfil(principal.getSubject(), dto);
+
+        PerfilDTO perfilDTO = new PerfilDTO(
+            new UsuarioPerfilDTO(
+                usuario.getId(),
+                usuario.getNome(),
+                usuario.getBio(),
+                usuario.getFotoAvatarUrl()
+            ),
+            null, // Estatísticas omitidas para simplificação
+            null  // Últimas experiências podem ser preenchidas posteriormente
+            );
+
+        return ResponseEntity.ok(perfilDTO);
     }
 
     //Deletar (Perfil) Conta

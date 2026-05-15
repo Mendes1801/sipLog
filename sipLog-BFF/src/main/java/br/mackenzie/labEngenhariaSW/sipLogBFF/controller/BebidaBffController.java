@@ -2,6 +2,7 @@ package br.mackenzie.labEngenhariaSW.sipLogBFF.controller;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -43,9 +44,9 @@ public class BebidaBffController {
 
     // Adcionar bebidas novas 
     @PostMapping
-    public ResponseEntity<Void> adicionarBebida(@RequestBody NovaBebidaDTO novaBebida) {
-        bebidaService.adicionarBebida(novaBebida);
-        return ResponseEntity.status(201).build();
+    public ResponseEntity<BebidaResumoDTO> adicionarBebida(@RequestBody NovaBebidaDTO novaBebida) {
+        BebidaResumoDTO response = bebidaService.adicionarBebida(novaBebida);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);    
     }
     
 

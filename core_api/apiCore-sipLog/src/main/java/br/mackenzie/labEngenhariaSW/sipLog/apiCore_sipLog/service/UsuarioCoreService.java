@@ -16,12 +16,12 @@ import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.repository.SeguidorRep
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.repository.UsuarioRepository;
 
 @Service
-public class UsuarioService {
+public class UsuarioCoreService {
 
     private final UsuarioRepository usuarioRepository;
     private final SeguidorRepository seguidorRepository;
 
-    UsuarioService(UsuarioRepository usuarioRepository, SeguidorRepository seguidorRepository) {
+    UsuarioCoreService(UsuarioRepository usuarioRepository, SeguidorRepository seguidorRepository) {
         this.usuarioRepository = usuarioRepository;
         this.seguidorRepository = seguidorRepository;
     }

@@ -1,4 +1,6 @@
 package br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.controller;
+import java.time.LocalDateTime;
+
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -61,27 +63,48 @@ public class ExperienciaCoreController {
     
     //Cria um novo registro de experiência (postagem) e retorna o id e data de criação da experiência criada
     @PostMapping
-    public ResponseEntity<Void> registrarExperiencia(
+    public ResponseEntity<RegistroExperienciaDTO> registrarExperiencia(
                 @RequestBody NovaExperienciaDTO experienciaDTO, 
                 @AuthenticationPrincipal Jwt principal) {
 
         //Chama o service para registrar nova postagem
-        experienciaService.registrarExperiencia(principal.getSubject(), experienciaDTO);
+        Experiencia entidade = experienciaService.registrarExperiencia(principal.getSubject(), experienciaDTO);
+
+        // Mapeia para o DTO de resposta
+        RegistroExperienciaDTO response = new RegistroExperienciaDTO(
+            entidade.getUsuario().getId(),
+            entidade.getBebida().getId(),
+            entidade.getNota(),
+            entidade.getComentario(),
+            entidade.getDataCriacao().toString(),
+            entidade.getLocalizacao(),
+            entidade.getFotoPostUrl()
+        );
 
         //Retorna o 201 CREATE e o DTO de retorno
-        return ResponseEntity.status(HttpStatus.CREATED).build();
-
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     //Editar o Sip (O usuário pode querer mudar a nota ou corrigir o texto)
     @PutMapping("/{id}")
-    public ResponseEntity<Void> editarExperiencia(
+    public ResponseEntity<RegistroExperienciaDTO> editarExperiencia(
             @PathVariable Long id, 
             @Valid @RequestBody NovaExperienciaDTO dto, 
             @AuthenticationPrincipal Jwt principal) {
         
-        experienciaService.editarExperiencia(id, dto, principal.getSubject());
-        return ResponseEntity.ok().build();
+        Experiencia entidade = experienciaService.editarExperiencia(id, dto, principal.getSubject());
+        
+        RegistroExperienciaDTO response = new RegistroExperienciaDTO(
+            entidade.getUsuario().getId(),
+            entidade.getBebida().getId(),
+            entidade.getNota(),
+            entidade.getComentario(),
+            entidade.getDataCriacao().toString(),
+            entidade.getLocalizacao(),
+            entidade.getFotoPostUrl()
+        );
+                
+        return ResponseEntity.ok(response);
     }
 
 
@@ -97,13 +120,24 @@ public class ExperienciaCoreController {
 
     //Adicionar um comentario em uma experiencia
     @PostMapping("/{id}/comentarios")
-    public ResponseEntity<Void> adicionarComentario(
+    public ResponseEntity<ComentarioDTO> adicionarComentario(
             @PathVariable Long id,
             @RequestBody NovoComentarioDTO comentario,
             @AuthenticationPrincipal Jwt principal) {
         
-        experienciaService.adicionarComentario(id, comentario, principal.getSubject());
-        return ResponseEntity.ok().build();
+        Comentario comentarioEntity = experienciaService.adicionarComentario(id, comentario, principal.getSubject());
+        
+        ComentarioDTO response = new ComentarioDTO(
+        comentarioEntity.getId(),
+        comentarioEntity.getTexto(),
+        LocalDateTime.now(),
+        new UsuarioResumoDTO(
+            comentarioEntity.getUsuario().getId(),
+            comentarioEntity.getUsuario().getNome(),
+            comentarioEntity.getUsuario().getFotoAvatarUrl()
+        ));
+    
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
 

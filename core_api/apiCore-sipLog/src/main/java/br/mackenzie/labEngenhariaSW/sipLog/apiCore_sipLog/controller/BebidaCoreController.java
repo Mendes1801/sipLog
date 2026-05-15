@@ -6,6 +6,7 @@ import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.dto.dtoPost.NovaBebida
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Bebida;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.service.BebidaCoreService;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
@@ -59,13 +60,19 @@ public class BebidaCoreController {
         return ResponseEntity.ok(dto);
     }
 
-    // 3. Criação colaborativa de nova bebida
+    //Criação colaborativa de nova bebida
     @PostMapping
-    public ResponseEntity<Void> criarBebida(@Valid @RequestBody NovaBebidaDTO dto) {
+    public ResponseEntity<BebidaResumoDTO> criarBebida(@Valid @RequestBody NovaBebidaDTO dto) {
         
         // Service salva
-        bebidaService.criar(dto);
+        Bebida novaBebida = bebidaService.criar(dto);
 
-        return ResponseEntity.ok().build();
+        // Mapeia para o DTO de resposta
+        BebidaResumoDTO dtoResumo = new BebidaResumoDTO(
+                novaBebida.getId(), 
+                novaBebida.getNome(),
+                novaBebida.getCategoria());
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(dtoResumo);
     }
 }
