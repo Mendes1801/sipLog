@@ -14,40 +14,45 @@ services:
     volumes:
       - ./volume/postgres:/var/lib/postgresql/data
 
-  # Opcional por agora, mas bom já deixar no esquema para o cache do Feed
+  # Mantive o Redis ATIVADO pois o BFF e a Core API (Spring) 
+  # geralmente precisam dele para cache ou sessões
   redis:
     image: redis:7-alpine
     container_name: sip_redis
     ports:
       - "6379:6379"
+    restart: unless-stopped
 
-# Adicionando a Core API
+  # Core API (Rodando na porta 8081 conforme você pediu)
   core-api:
     build:
       context: ../core_api/apiCore-sipLog
       dockerfile: Dockerfile
     container_name: siplog-core-api
     ports:
-      - "8080:8080"
+      - "8081:8081"
     depends_on:
       - postgres
+      - redis
     environment:
-      # Limite de memória vital para o container não cair
       - JAVA_OPTS=-Xmx512m -Xms256m 
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/seu_banco
+      # Apontando exatamente para as credenciais criadas no container do Postgres
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/sip_db
+      - SPRING_DATASOURCE_USERNAME=sip_user
+      - SPRING_DATASOURCE_PASSWORD=sip_password
 
-  # Adicionando o BFF
+  # BFF (Rodando na porta 8080)
   bff:
     build:
       context: ../sipLog-BFF
       dockerfile: Dockerfile
     container_name: siplog-bff
     ports:
-      - "3000:3000"
+      - "8080:8080" # Porta que o Flutter vai chamar
     depends_on:
       - core-api
       - redis
     environment:
-      # Limite de memória
       - JAVA_OPTS=-Xmx512m -Xms256m 
-      - CORE_API_URL=http://core-api:8080
+      # O BFF aponta para a porta 8081 da Core API
+      - CORE_API_URL=http://core-api:8081

@@ -21,7 +21,8 @@ public interface SeguidorRepository extends JpaRepository<Seguidor, Long> {
     // Verifica se a relação já existe (para saber se pinta o botão de 'Seguindo' ou 'Seguir')
     boolean existsBySeguidorAndSeguido(Usuario seguidor, Usuario seguido);
 
-    Page<Usuario> findUsuariosQueSeguem(Long idUsuario, Pageable paginacao);
+    // Lista de seguidores de um usuário (paginada)
+    Page<Usuario> findBySeguidoId(Long seguidoId, Pageable pageable);
 
     Optional<Seguidor> findBySeguidorIdAndSeguidoId(Long id, Long id2);
 

@@ -1,0 +1,26 @@
+# Estágio 1: Build (Compilação)
+FROM maven:3.9.6-eclipse-temurin-21-alpine AS builder
+WORKDIR /app
+
+# Copia apenas o pom.xml para baixar as dependências e criar cache
+COPY pom.xml .
+RUN mvn dependency:go-offline
+
+# Copia o código fonte e gera o .jar
+COPY src ./src
+RUN mvn clean package -DskipTests
+
+# Estágio 2: Execução (Runtime)
+FROM eclipse-temurin:21-jre-alpine
+WORKDIR /app
+
+# Copia o arquivo gerado no estágio anterior
+COPY --from=builder /app/target/*.jar core-app.jar
+
+# Porta da API Core
+EXPOSE 8081
+
+# Variáveis para desenvolvimento local (Debug ativado se quiser)
+ENV JAVA_OPTS="-Xmx512m -Xms256m"
+
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar core-app.jar"]

@@ -1,0 +1,92 @@
+version: '3.8'
+
+services:
+  # Banco de Dados da Aplicação (SipLog)
+  postgres-local:
+    image: postgres:15-alpine
+    container_name: sip_postgres_local
+    environment:
+      POSTGRES_DB: sip_db
+      POSTGRES_USER: sip_user
+      POSTGRES_PASSWORD: sip_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - sip_db_data:/var/lib/postgresql/data
+
+  # Banco de Dados exclusivo do Keycloak
+  postgres-keycloak:
+    image: postgres:15-alpine
+    container_name: sip_postgres_keycloak
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: password
+    volumes:
+      - keycloak_db_data:/var/lib/postgresql/data
+
+  # Servidor de Autenticação Keycloak
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.0
+    container_name: sip_keycloak_local
+    command: start-dev
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres-keycloak:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: password
+      KC_HOSTNAME: localhost
+      KC_HTTP_ENABLED: "true"
+      # Usuário e senha mestre para você configurar o Realm
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - "8082:8080" # Mudei para 8082 para não conflitar com o BFF na 8080
+    depends_on:
+      - postgres-keycloak
+
+  redis-local:
+    image: redis:7-alpine
+    container_name: sip_redis_local
+    ports:
+      - "6379:6379"
+
+  core-api-local:
+    build:
+      context: ../core_api/apiCore-sipLog
+      dockerfile: Dockerfile.core-local
+    container_name: siplog-core-api-local
+    ports:
+      - "8081:8081"
+    depends_on:
+      - postgres-local
+      - redis-local
+      - keycloak # Agora depende do Keycloak estar de pé
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-local:5432/sip_db
+      - SPRING_DATASOURCE_USERNAME=sip_user
+      - SPRING_DATASOURCE_PASSWORD=sip_password
+      - SPRING_DATA_REDIS_HOST=redis-local
+      # URL que a API usará para validar o token internamente
+      - KEYCLOAK_SERVER_URL=http://keycloak:8080/realms/SipLog
+
+  bff-local:
+    build:
+      context: ../sipLog-BFF
+      dockerfile: Dockerfile.bff-local
+    container_name: siplog-bff-local
+    ports:
+      - "8080:8080"
+    depends_on:
+      - core-api-local
+      - redis-local
+      - keycloak
+    environment:
+      - CORE_API_URL=http://core-api-local:8081
+      - SPRING_DATA_REDIS_HOST=redis-local
+      # O BFF precisa saber onde redirecionar para o login
+      - KEYCLOAK_SERVER_URL=http://localhost:8082
+
+volumes:
+  sip_db_data:
+  keycloak_db_data:
