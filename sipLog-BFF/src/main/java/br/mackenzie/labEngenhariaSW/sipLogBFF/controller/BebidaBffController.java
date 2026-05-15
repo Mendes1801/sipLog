@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.DetalheBebidaDTO;
+import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.NovaBebidaDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.recive.FeedItemDTORecive.BebidaResumoDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.service.BebidaBffService;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,8 +28,8 @@ public class BebidaBffController {
 
     // Buscar bebidas por id 
     @GetMapping("/{id}")
-    public ResponseEntity<BebidaResumoDTO> buscarBebidaPorId(@RequestParam Long id) {
-        BebidaResumoDTO bebida = bebidaService.buscarPorId(id);
+    public ResponseEntity<DetalheBebidaDTO> buscarBebidaPorId(@RequestParam Long id) {
+        DetalheBebidaDTO bebida = bebidaService.buscarPorId(id);
         
         
         //Verificar se essa é a melhor forma de fazer isso
@@ -41,9 +43,9 @@ public class BebidaBffController {
 
     // Adcionar bebidas novas 
     @PostMapping
-    public ResponseEntity<BebidaResumoDTO> adicionarBebida(@RequestBody BebidaResumoDTO novaBebida) {
-        BebidaResumoDTO bebidaAdicionada = bebidaService.adicionarBebida(novaBebida);
-        return ResponseEntity.status(201).body(bebidaAdicionada);
+    public ResponseEntity<Void> adicionarBebida(@RequestBody NovaBebidaDTO novaBebida) {
+        bebidaService.adicionarBebida(novaBebida);
+        return ResponseEntity.status(201).build();
     }
     
 

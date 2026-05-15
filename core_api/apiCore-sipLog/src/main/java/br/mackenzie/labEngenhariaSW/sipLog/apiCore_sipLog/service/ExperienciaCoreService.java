@@ -166,7 +166,7 @@ public class ExperienciaCoreService {
 
     @Transactional
     public Comentario adicionarComentario(Long idPost, NovoComentarioDTO dto, String keycloakId) {
-        Usuario meuUsuario = usuarioService.buscarPorKeycloakId(keycloakId);
+        Usuario meuUsuario = usuarioService.getUsuarioPerfil(keycloakId);
         Experiencia post = buscarPorId(idPost);
 
         Comentario comentario = new Comentario();

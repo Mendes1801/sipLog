@@ -6,7 +6,6 @@ import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.dto.dtoPost.NovaBebida
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Bebida;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.service.BebidaCoreService;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
@@ -62,18 +61,11 @@ public class BebidaCoreController {
 
     // 3. Criação colaborativa de nova bebida
     @PostMapping
-    public ResponseEntity<BebidaResumoDTO> criarBebida(@Valid @RequestBody NovaBebidaDTO dto) {
+    public ResponseEntity<Void> criarBebida(@Valid @RequestBody NovaBebidaDTO dto) {
         
-        // Service salva e devolve a entidade criada com o ID gerado pelo banco
-        Bebida novaBebida = bebidaService.criar(dto);
+        // Service salva
+        bebidaService.criar(dto);
 
-        // Retornamos o resumo para o App já poder usar esse ID na postagem do Sip
-        BebidaResumoDTO responseDto = new BebidaResumoDTO(
-                novaBebida.getId(), 
-                novaBebida.getNome(), 
-                novaBebida.getCategoria()
-        );
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
+        return ResponseEntity.ok().build();
     }
 }

@@ -2,26 +2,54 @@ package br.mackenzie.labEngenhariaSW.sipLogBFF.service;
 
 import java.util.List;
 
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
 
+import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.DetalheBebidaDTO;
+import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.NovaBebidaDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.recive.FeedItemDTORecive.BebidaResumoDTO;
 
 @Service
 public class BebidaBffService {
 
-    public List<BebidaResumoDTO> buscarNoCatalogo(String q){
 
-        return null;
+
+    private final RestClient restClient;
+
+    public BebidaBffService(RestClient restClient) {
+        this.restClient = restClient;
     }
 
-    public BebidaResumoDTO buscarPorId(Long id) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'buscarPorId'");
+
+
+    //Buscar no Catálogo (Autocomplete)
+    public List<BebidaResumoDTO> buscarNoCatalogo(String q) {
+        return restClient.get()
+                .uri("http://localhost:8082/internal/v1/bebidas/buscar?q=" + q)
+                .retrieve()
+                // Como é uma Lista, usamos o ParameterizedTypeReference para o Spring saber converter o JSON corretamente
+                .body(new ParameterizedTypeReference<List<BebidaResumoDTO>>() {});
     }
 
-    public BebidaResumoDTO adicionarBebida(BebidaResumoDTO novaBebida) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'adicionarBebida'");
+
+     //Ver Detalhes da Bebida
+    public DetalheBebidaDTO buscarPorId(Long id) {
+        return restClient.get()
+                .uri("http://localhost:8082/internal/v1/bebidas/" + id)
+                .retrieve()
+                .body(DetalheBebidaDTO.class);
+    }
+
+
+    //3. Criação Colaborativa de Nova Bebida
+    public void adicionarBebida(NovaBebidaDTO novaBebida) {
+         restClient.post()
+                .uri("http://localhost:8082/internal/v1/bebidas")
+                .body(novaBebida) // Envia o JSON com a nova bebida
+                .retrieve()
+                .toBodilessEntity();
+
     }
     
 }
