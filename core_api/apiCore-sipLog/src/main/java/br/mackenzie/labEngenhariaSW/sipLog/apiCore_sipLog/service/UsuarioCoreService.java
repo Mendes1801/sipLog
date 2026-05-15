@@ -112,7 +112,7 @@ public class UsuarioCoreService {
         
         // Retorna a Entidade! O seu repositório fará o JOIN necessário
         // para trazer os Usuários que seguem este idUsuario.
-        return seguidorRepository.findUsuariosQueSeguem(idUsuario, paginacao); 
+        return seguidorRepository.findBySeguidoId(idUsuario, paginacao); 
     }
 
 }

@@ -41,7 +41,7 @@ services:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
     ports:
-      - "8082:8080" # Mudei para 8082 para não conflitar com o BFF na 8080
+      - "8080:8080"
     depends_on:
       - postgres-keycloak
 
@@ -57,7 +57,7 @@ services:
       dockerfile: Dockerfile.core-local
     container_name: siplog-core-api-local
     ports:
-      - "8081:8081"
+      - "8082:8082"
     depends_on:
       - postgres-local
       - redis-local
@@ -68,7 +68,7 @@ services:
       - SPRING_DATASOURCE_PASSWORD=sip_password
       - SPRING_DATA_REDIS_HOST=redis-local
       # URL que a API usará para validar o token internamente
-      - KEYCLOAK_SERVER_URL=http://keycloak:8080/realms/SipLog
+      - KEYCLOAK_SERVER_URL=http://keycloak:8080/realms/BFF
 
   bff-local:
     build:
@@ -76,16 +76,16 @@ services:
       dockerfile: Dockerfile.bff-local
     container_name: siplog-bff-local
     ports:
-      - "8080:8080"
+      - "8081:8081"
     depends_on:
       - core-api-local
       - redis-local
       - keycloak
     environment:
-      - CORE_API_URL=http://core-api-local:8081
+      - CORE_API_URL=http://core-api-local:8082
       - SPRING_DATA_REDIS_HOST=redis-local
       # O BFF precisa saber onde redirecionar para o login
-      - KEYCLOAK_SERVER_URL=http://localhost:8082
+      - KEYCLOAK_SERVER_URL=http://keycloak:8080
 
 volumes:
   sip_db_data:

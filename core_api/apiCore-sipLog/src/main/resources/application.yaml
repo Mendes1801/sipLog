@@ -1,5 +1,5 @@
 server:
-  port: 8081
+  port: 8082
 
 spring:
   application:
@@ -9,10 +9,10 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8082/realms/BFF
+          issuer-uri: http://localhost:8080/realms/BFF
           
   datasource:
-    url: jdbc:postgresql://localhost:5432/sip_db
+    url: jdbc:postgresql://postgres-local:5432/sip_db
     username: sip_user
     password: sip_password
   jpa:
