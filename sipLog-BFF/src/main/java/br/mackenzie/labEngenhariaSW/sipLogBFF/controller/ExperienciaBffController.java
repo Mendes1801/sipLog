@@ -42,7 +42,7 @@ public class ExperienciaBffController {
     // Deletar Experiência (Somente o autor pode deletar)
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletarExperiencia(@PathVariable Long id, @AuthenticationPrincipal Jwt principal) {
-        experienciaService.deletarPostagem(id, principal.getSubject());
+        experienciaService.deletarPostagem(id);
         return ResponseEntity.ok().build();
     }
 
@@ -62,39 +62,37 @@ public class ExperienciaBffController {
             @PathVariable Long id, 
             @PathVariable Long idComentario,
             @AuthenticationPrincipal Jwt principal) {
-        experienciaService.deletarComentario(id, idComentario, principal.getSubject());
+        experienciaService.deletarComentario(id, idComentario);
         return ResponseEntity.ok().build();
     }
 
     //Editar comentário (Somente o autor pode editar)
     @PutMapping("/{id}/comentarios/{idComentario}")
-    public ResponseEntity<Void> editarComentario(
+    public ResponseEntity<ComentarioResponseDTO> editarComentario(
             @PathVariable Long id, 
             @PathVariable Long idComentario,
             @RequestBody NovoComentarioDTO dto,
             @AuthenticationPrincipal Jwt principal) {
-        experienciaService.editarComentario(id, idComentario, dto, principal.getSubject());
-        return ResponseEntity.ok().build();
+        ComentarioResponseDTO response = experienciaService.editarComentario(id, idComentario, dto);
+        return ResponseEntity.ok(response);
     }
 
-    
 
     // ITEM 5: Curtir / Descurtir
     @PostMapping("/{id}/curtir")
     public ResponseEntity<Void> alternarCurtida(@PathVariable Long id, @AuthenticationPrincipal Jwt principal) {
-        experienciaService.alternarCurtida(id, principal.getSubject());
+        experienciaService.alternarCurtida(id);
         return ResponseEntity.ok().build();
     }
 
     // ITEM 5: Comentar
     @PostMapping("/{id}/comentarios")
-    public ResponseEntity<Void> adicionarComentario(
+    public ResponseEntity<ComentarioResponseDTO> adicionarComentario(
             @PathVariable Long id, 
             @RequestBody NovoComentarioDTO dto, 
             @AuthenticationPrincipal Jwt principal) {
         
-        experienciaService.adicionarComentario(id, dto, principal.getSubject());
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        return ResponseEntity.status(HttpStatus.CREATED).body(experienciaService.adicionarComentario(id, dto));
     }
 
     // ITEM 5: Listar Comentários de um Post

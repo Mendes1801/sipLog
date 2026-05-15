@@ -1,5 +1,6 @@
 package br.mackenzie.labEngenhariaSW.sipLogBFF.service;
 
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -26,40 +27,54 @@ public class ExperienciaBffService {
                 .body(RegistroExperienciaDTO.class); // BFF recebe o objeto completo da Core
     }
 
-    public void alternarCurtida(Long id, String subject) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'alternarCurtida'");
+    public void alternarCurtida(Long idPost) {
+        restClient.post()
+                .uri("http://localhost:8082/internal/v1/experiencias/" + idPost + "/curtir")
+                .retrieve()
+                .toBodilessEntity();
     }
 
-    public void adicionarComentario(Long id, NovoComentarioDTO dto, String subject) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'adicionarComentario'");
+    public ComentarioResponseDTO adicionarComentario(Long idPost, NovoComentarioDTO dto) {
+        return restClient.post()
+                .uri("http://localhost:8082/internal/v1/experiencias/" + idPost + "/comentarios")
+                .body(dto)
+                .retrieve()
+                .body(ComentarioResponseDTO.class);
     }
 
-    public PaginaBffDTORecive<ComentarioResponseDTO> buscarComentarios(Long id, int pagina) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'buscarComentarios'");
+    public PaginaBffDTORecive<ComentarioResponseDTO> buscarComentarios(Long idPost, int pagina) {
+        return restClient.get()
+                .uri("http://localhost:8082/internal/v1/experiencias/" + idPost + "/comentarios?pagina=" + pagina)
+                .retrieve()
+                .body(new ParameterizedTypeReference<PaginaBffDTORecive<ComentarioResponseDTO>>() {});
     }
 
 
-    public void editarComentario(Long id, Long idComentario, NovoComentarioDTO dto, String subject) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'editarComentario'");
-    }
-
-    public void deletarComentario(Long id, Long idComentario, String subject) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'deletarComentario'");
-    }
-
-    public void deletarPostagem(Long id, String subject) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'deletarPostagem'");
-    }
-
-    public RegistroExperienciaDTO editarExperiencia(Long id, NovaExperienciaDTO dto) {
+    public ComentarioResponseDTO editarComentario(Long idPost, Long idComentario, NovoComentarioDTO dto) {
         return restClient.put()
-                .uri("http://localhost:8082/internal/v1/experiencias/" + id)
+                .uri("http://localhost:8082/internal/v1/experiencias/" + idPost + "/comentarios/" + idComentario)
+                .body(dto)
+                .retrieve()
+                .body(ComentarioResponseDTO.class);
+    }
+
+    public void deletarComentario(Long idPost, Long idComentario) {
+        restClient.delete()
+                .uri("http://localhost:8082/internal/v1/experiencias/" + idPost + "/comentarios/" + idComentario)
+                .retrieve()
+                .toBodilessEntity();
+    }
+    
+    public void deletarPostagem(Long idPost) {
+        restClient.delete()
+                .uri("http://localhost:8082/internal/v1/experiencias/" + idPost)
+                .retrieve()
+                .toBodilessEntity();
+    }
+
+    public RegistroExperienciaDTO editarExperiencia(Long idPost, NovaExperienciaDTO dto) {
+        return restClient.put()
+                .uri("http://localhost:8082/internal/v1/experiencias/" + idPost)
                 .body(dto)
                 .retrieve()
                 .body(RegistroExperienciaDTO.class); // Devolve o post atualizado
