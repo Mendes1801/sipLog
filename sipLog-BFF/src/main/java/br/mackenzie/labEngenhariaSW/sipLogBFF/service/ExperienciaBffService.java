@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -19,6 +20,9 @@ import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.response.RegistroExperienciaDT
 @Service
 public class ExperienciaBffService {
 
+    @Value("${api.core.base-url}")
+    private String apiCoreBaseUrl;
+
     private final RestClient restClient;
 
     public ExperienciaBffService(RestClient restClient) {
@@ -27,7 +31,7 @@ public class ExperienciaBffService {
 
     public RegistroExperienciaDTO registrarNovaExperiencia(NovaExperienciaDTO dto, String keycloakId) {
         return restClient.post()
-                .uri("http://localhost:8082/apiCore/v1/experiencias")
+                .uri(apiCoreBaseUrl + "/v1/experiencias")
                 .body(dto)
                 .retrieve()
                 .body(RegistroExperienciaDTO.class); // BFF recebe o objeto completo da Core
@@ -35,7 +39,7 @@ public class ExperienciaBffService {
 
     public void alternarCurtida(Long idPost) {
         restClient.post()
-                .uri("http://localhost:8082/apiCore/v1/experiencias/" + idPost + "/curtir")
+                .uri(apiCoreBaseUrl + "/v1/experiencias/" + idPost + "/curtir")
                 .retrieve()
                 .toBodilessEntity();
     }
@@ -44,7 +48,7 @@ public class ExperienciaBffService {
      //Consome o dado bruto da Core e traduz em tempo decorrido para o Flutter.
     public ComentarioResponseDTO adicionarComentario(Long idPost, NovoComentarioDTO dto) {
         ComentarioCoreDTO coreResponse = restClient.post()
-                .uri("http://localhost:8082/internal/v1/experiencias/" + idPost + "/comentarios")
+                .uri(apiCoreBaseUrl + "/v1/experiencias/" + idPost + "/comentarios")
                 .body(dto)
                 .retrieve()
                 .body(ComentarioCoreDTO.class);
@@ -56,7 +60,7 @@ public class ExperienciaBffService {
     //Faz o mapeamento em lote de todas as datas da página antes de mandar para o Mobile.
     public PaginaBffDTORecive<ComentarioResponseDTO> buscarComentarios(Long idPost, int pagina) {
         PaginaBffDTORecive<ComentarioCoreDTO> paginaCore = restClient.get()
-                .uri("http://localhost:8082/internal/v1/experiencias/" + idPost + "/comentarios?pagina=" + pagina)
+                .uri(apiCoreBaseUrl + "/v1/experiencias/" + idPost + "/comentarios?pagina=" + pagina)
                 .retrieve()
                 .body(new ParameterizedTypeReference<PaginaBffDTORecive<ComentarioCoreDTO>>() {});
 
@@ -82,7 +86,7 @@ public class ExperienciaBffService {
     //Agora mapeia o retorno da Core calculando o "Há tanto tempo".
     public ComentarioResponseDTO editarComentario(Long idPost, Long idComentario, NovoComentarioDTO dto) {
         ComentarioCoreDTO coreResponse = restClient.put()
-                .uri("http://localhost:8082/internal/v1/experiencias/" + idPost + "/comentarios/" + idComentario)
+                .uri(apiCoreBaseUrl + "/v1/experiencias/" + idPost + "/comentarios/" + idComentario)
                 .body(dto)
                 .retrieve()
                 .body(ComentarioCoreDTO.class);
@@ -92,21 +96,21 @@ public class ExperienciaBffService {
 
     public void deletarComentario(Long idPost, Long idComentario) {
         restClient.delete()
-                .uri("http://localhost:8082/apiCore/v1/experiencias/" + idPost + "/comentarios/" + idComentario)
+                .uri(apiCoreBaseUrl + "/v1/experiencias/" + idPost + "/comentarios/" + idComentario)
                 .retrieve()
                 .toBodilessEntity();
     }
     
     public void deletarPostagem(Long idPost) {
         restClient.delete()
-                .uri("http://localhost:8082/apiCore/v1/experiencias/" + idPost)
+                .uri(apiCoreBaseUrl + "/v1/experiencias/" + idPost)
                 .retrieve()
                 .toBodilessEntity();
     }
 
     public RegistroExperienciaDTO editarExperiencia(Long idPost, NovaExperienciaDTO dto) {
         return restClient.put()
-                .uri("http://localhost:8082/apiCore/v1/experiencias/" + idPost)
+                .uri(apiCoreBaseUrl + "/v1/experiencias/" + idPost)
                 .body(dto)
                 .retrieve()
                 .body(RegistroExperienciaDTO.class); // Devolve o post atualizado

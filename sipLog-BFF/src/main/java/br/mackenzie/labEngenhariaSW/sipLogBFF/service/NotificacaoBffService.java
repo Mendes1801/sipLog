@@ -1,5 +1,6 @@
 package br.mackenzie.labEngenhariaSW.sipLogBFF.service;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -11,6 +12,9 @@ import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.response.NotificacaoResponseDT
 @Service
 public class NotificacaoBffService {
 
+    @Value("${api.core.base-url}")
+    private String apiCoreBaseUrl;
+
     private final RestClient restClient;
 
     public NotificacaoBffService(RestClient restClient) {
@@ -21,7 +25,7 @@ public class NotificacaoBffService {
     //Traz o histórico de notificações do usuário logado
     public PaginaBffDTORecive<NotificacaoResponseDTO> buscarNotificacoes(int pagina) {
         return restClient.get()
-                .uri("http://localhost:8082/apiCore/v1/notificacoes?pagina=" + pagina)
+                .uri(apiCoreBaseUrl + "/v1/notificacoes?pagina=" + pagina)
                 .retrieve()
                 // Novamente usamos o ParameterizedTypeReference para evitar o Type Erasure
                 .body(new ParameterizedTypeReference<PaginaBffDTORecive<NotificacaoResponseDTO>>() {});
@@ -31,7 +35,7 @@ public class NotificacaoBffService {
     //Chamada quando o usuário clica em cima de uma notificação específica.
     public void marcarComoLida(Long idNotificacao) {
         restClient.patch() 
-                .uri("http://localhost:8082/apiCore/v1/notificacoes/" + idNotificacao + "/lida")
+                .uri(apiCoreBaseUrl + "/v1/notificacoes/" + idNotificacao + "/lida")
                 .retrieve()
                 .toBodilessEntity(); // Retorna Void (204 No Content ou 200 OK)
     }
@@ -42,7 +46,7 @@ public class NotificacaoBffService {
  
     public ContagemNotificacoesDTO contarNaoLidas() {
         return restClient.get()
-                .uri("http://localhost:8082/apiCore/v1/notificacoes/nao-lidas/count")
+                .uri(apiCoreBaseUrl + "/v1/notificacoes/nao-lidas/count")
                 .retrieve()
                 .body(ContagemNotificacoesDTO.class);
     }

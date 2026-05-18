@@ -3,7 +3,20 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8080/realms/BFF
+          issuer-uri: http://keycloak:8080/realms/BFF
 
 server:
   port: 8081
+
+api:
+  core:
+    # Se a variável API_CORE_BASE_URL existir no sistema, ele usa ela.
+    # Se não existir ele usa o localhost.
+    base-url: ${API_CORE_BASE_URL:http://localhost:8082/apiCore}
+
+logging:
+  level:
+    root: INFO  # Nível padrão para todos os frameworks e bibliotecas
+    'br.mackenzie.labEngenhariaSW.sipLogBFF': DEBUG # Ativa o debug especificamente para o seu código
+    org.springframework.web: DEBUG # Mostra informações detalhadas de requisições HTTP
+    org.hibernate.SQL: DEBUG # Útil para ver as queries do banco de dados sendo executadas

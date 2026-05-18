@@ -35,9 +35,11 @@ services:
       KC_DB_URL: jdbc:postgresql://postgres-keycloak:5432/keycloak
       KC_DB_USERNAME: keycloak
       KC_DB_PASSWORD: password
-      KC_HOSTNAME: localhost
+
+      KC_HOSTNAME_STRICT: "false"
+      KC_HOSTNAME_STRICT_HTTPS: "false"
+      
       KC_HTTP_ENABLED: "true"
-      # Usuário e senha mestre para você configurar o Realm
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
     ports:
@@ -53,7 +55,7 @@ services:
 
   core-api-local:
     build:
-      context: ../core_api/apiCore-sipLog
+      context: ../../core_api/apiCore-sipLog
       dockerfile: Dockerfile.core-local
     container_name: siplog-core-api-local
     ports:
@@ -72,7 +74,7 @@ services:
 
   bff-local:
     build:
-      context: ../sipLog-BFF
+      context: ../../sipLog-BFF
       dockerfile: Dockerfile.bff-local
     container_name: siplog-bff-local
     ports:

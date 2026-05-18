@@ -35,3 +35,6 @@ build/
 ### Agents ###
 .agents/
 GEMINI.md
+
+### Ambientes ###
+.env

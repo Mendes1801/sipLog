@@ -2,6 +2,7 @@ package br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.service;
 
 import java.util.Optional;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -13,6 +14,7 @@ import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.dto.dtoPut.UsuarioUpda
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Seguidor;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.TipoNotificacao;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Usuario;
+import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.event.NotificacaoEvent;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.repository.SeguidorRepository;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.repository.UsuarioRepository;
 
@@ -21,12 +23,12 @@ public class UsuarioCoreService {
 
     private final UsuarioRepository usuarioRepository;
     private final SeguidorRepository seguidorRepository;
-    private final NotificacaoCoreService notificacaoCoreService;
+    private final ApplicationEventPublisher eventPublisher;
 
-    UsuarioCoreService(UsuarioRepository usuarioRepository, NotificacaoCoreService notificacaoCoreService, SeguidorRepository seguidorRepository) {
+    UsuarioCoreService(UsuarioRepository usuarioRepository, ApplicationEventPublisher eventPublisher, SeguidorRepository seguidorRepository) {
         this.usuarioRepository = usuarioRepository;
+        this.eventPublisher = eventPublisher;
         this.seguidorRepository = seguidorRepository;
-        this.notificacaoCoreService = notificacaoCoreService;
     }
 
     public Usuario getUsuarioPerfil(String keycloakID) {
@@ -107,7 +109,7 @@ public class UsuarioCoreService {
             seguidorRepository.save(novoSeguidor);
             
             //cria o "Seguidor novoSeguidor"
-            notificacaoCoreService.gerarNotificacao(eu, alvo, TipoNotificacao.NOVO_SEGUIDOR, null);
+            eventPublisher.publishEvent(new NotificacaoEvent(eu, alvo, TipoNotificacao.NOVO_SEGUIDOR, null));
         }
     }
 

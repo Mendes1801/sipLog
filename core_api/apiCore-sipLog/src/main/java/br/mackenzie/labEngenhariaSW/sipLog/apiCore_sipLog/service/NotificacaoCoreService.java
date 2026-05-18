@@ -3,12 +3,16 @@ package br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.service;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Notificacao;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.TipoNotificacao;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Usuario;
+import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.event.NotificacaoEvent;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.exception.AcessoNegadoException;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.exception.RecursoNaoEncontradoException;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.repository.NotificacaoRepository;
+
+import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +26,25 @@ public class NotificacaoCoreService {
         this.notificacaoRepository = notificacaoRepository;
         this.usuarioService = usuarioService;
     }
+
+    @EventListener
+    @Async // Salva em backgroud
+    public void onNotificacaoEvent(NotificacaoEvent event) {
+        
+        // A nossa regra de ouro da notificação
+        if (event.ator().getId().equals(event.recebedor().getId())) {
+            return;
+        }
+
+        Notificacao nova = new Notificacao();
+        nova.setAtor(event.ator());
+        nova.setRecebedor(event.recebedor());
+        nova.setTipo(event.tipo());
+        nova.setReferenciaId(event.referenciaId());
+        
+        notificacaoRepository.save(nova);
+    }
+
 
     public Page<Notificacao> listarMinhasNotificacoes(String keycloakId, int pagina) {
         Usuario eu = usuarioService.getUsuarioPerfil(keycloakId);

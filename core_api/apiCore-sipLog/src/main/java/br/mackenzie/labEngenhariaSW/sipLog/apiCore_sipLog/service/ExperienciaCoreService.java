@@ -3,6 +3,7 @@ package br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.service;
 
 import java.util.Optional;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -17,6 +18,7 @@ import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Experiencia;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Experiencia.Visibilidade;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.TipoNotificacao;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Usuario;
+import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.event.NotificacaoEvent;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.exception.AcessoNegadoException;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.exception.RecursoNaoEncontradoException;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.repository.ComentarioRepository;
@@ -37,17 +39,18 @@ public class ExperienciaCoreService {
     private final BebidaCoreService bebidaService;
     private final CurtidaRepository curtidaRepository;
     private final ComentarioRepository comentarioRepository;
-    private final NotificacaoCoreService notificacaoCoreService;
+    private final ApplicationEventPublisher eventPublisher;
 
-    ExperienciaCoreService(UsuarioRepository usuarioRepository, NotificacaoCoreService notificacaoCoreService,CurtidaRepository curtidaRepository, ComentarioRepository comentarioRepository, SeguidorRepository seguidorRepository, ExperienciaRepository experienciaRepository, UsuarioCoreService usuarioService, BebidaCoreService bebidaService) {
+    ExperienciaCoreService(UsuarioRepository usuarioRepository, ApplicationEventPublisher eventPublisher, CurtidaRepository curtidaRepository, ComentarioRepository comentarioRepository, SeguidorRepository seguidorRepository, ExperienciaRepository experienciaRepository, UsuarioCoreService usuarioService, BebidaCoreService bebidaService) {
         this.usuarioRepository = usuarioRepository;
+        this.eventPublisher = eventPublisher;
         this.experienciaRepository = experienciaRepository;
         this.seguidorRepository = seguidorRepository;
         this.usuarioService = usuarioService;
         this.bebidaService = bebidaService;
         this.curtidaRepository = curtidaRepository;
         this.comentarioRepository = comentarioRepository;
-        this.notificacaoCoreService = notificacaoCoreService;
+        
     }
 
     // Método para registrar uma nova experiência
@@ -165,8 +168,7 @@ public class ExperienciaCoreService {
             curtidaRepository.save(novaCurtida);
             
             // Disparar evento para gerar Notificação para o dono do post
-            // Depois verificar se o descurtir também gera uma noficação
-            notificacaoCoreService.gerarNotificacao(eu, post.getUsuario(), TipoNotificacao.CURTIDA, post.getId());
+            eventPublisher.publishEvent(new NotificacaoEvent(eu, post.getUsuario(), TipoNotificacao.CURTIDA, null));
         }
     }
 
@@ -183,8 +185,7 @@ public class ExperienciaCoreService {
         // A data de criação será preenchida automaticamente pelo @PrePersist da entidade
 
         // Cria a notifica no repository Notificacao
-        notificacaoCoreService.gerarNotificacao(meuUsuario, post.getUsuario(), TipoNotificacao.COMENTARIO, post.getId());
-
+        eventPublisher.publishEvent(new NotificacaoEvent(meuUsuario, post.getUsuario(), TipoNotificacao.COMENTARIO, post.getId()));
         return comentarioRepository.save(comentario);
     }
 
