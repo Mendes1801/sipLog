@@ -41,7 +41,7 @@ public class UsuarioBffService {
 
         // 3. Fazemos o POST para a Core API (Fire and Forget)
         restClient.post()
-                .uri("http://localhost:8082/internal/v1/usuarios/sync")
+                .uri("http://localhost:8082/apiCore/v1/usuarios/sync")
                 .body(dto)
                 .retrieve()
                 .toBodilessEntity(); // Não precisamos ler o corpo da resposta, só garantir o Status 200/201
@@ -56,7 +56,7 @@ public class UsuarioBffService {
     public void alternarSeguirUsuario(String meuKeycloakId, Long idAlvo) {
         // Faz o POST simples para a Core API gerenciar o Seguidor
         restClient.post()
-                .uri("http://localhost:8082/internal/v1/usuarios/" + idAlvo + "/seguir")
+                .uri("http://localhost:8082/apiCore/v1/usuarios/" + idAlvo + "/seguir")
                 .retrieve()
                 .toBodilessEntity();
     }
@@ -64,7 +64,7 @@ public class UsuarioBffService {
     //Busca o perfil do usuário logado (Meu Perfil)
     public UsuarioPerfilDTO buscarMeuPerfil(String meuKeycloakId) {
         return restClient.get()
-                .uri("http://localhost:8082/internal/v1/usuarios/me")
+                .uri("http://localhost:8082/apiCore/v1/usuarios/me")
                 .retrieve()
                 .body(UsuarioPerfilDTO.class);
     }
@@ -73,14 +73,14 @@ public class UsuarioBffService {
     //Busca o perfil de outro usuário, verificando se eu já o sigo
     public UsuarioPerfilDTO buscarPerfilDeTerceiro(Long idAlvo, String meuKeycloakId) {
         return restClient.get()
-                .uri("http://localhost:8082/internal/v1/usuarios/perfil/" + idAlvo)
+                .uri("http://localhost:8082/apiCore/v1/usuarios/perfil/" + idAlvo)
                 .retrieve()
                 .body(UsuarioPerfilDTO.class);
     }
 
     public void atualizarPerfil(String keycloakId, UsuarioUpdateDTO dto) {
             restClient.put()
-                    .uri("http://localhost:8082/internal/v1/usuarios/me")
+                    .uri("http://localhost:8082/apiCore/v1/usuarios/me")
                     .body(dto)
                     .retrieve()
                     .toBodilessEntity();
@@ -88,14 +88,14 @@ public class UsuarioBffService {
 
     public void removerPerfil(String keycloakId) {
         restClient.delete()
-                .uri("http://localhost:8082/internal/v1/usuarios/me")
+                .uri("http://localhost:8082/apiCore/v1/usuarios/me")
                 .retrieve()
                 .toBodilessEntity();
     }
 
     public PaginaBffDTORecive<UsuarioResumoDTO> listagemSeguidores(Long idUsuario, int pagina) {
         return restClient.get()
-                .uri("http://localhost:8082/internal/v1/usuarios/" + idUsuario + "/seguidores?pagina=" + pagina)
+                .uri("http://localhost:8082/apiCore/v1/usuarios/" + idUsuario + "/seguidores?pagina=" + pagina)
                 .retrieve()
                 .body(new ParameterizedTypeReference<PaginaBffDTORecive<UsuarioResumoDTO>>() {});
     }

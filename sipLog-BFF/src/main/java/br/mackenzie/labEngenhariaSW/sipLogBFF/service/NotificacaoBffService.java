@@ -1,6 +1,8 @@
 package br.mackenzie.labEngenhariaSW.sipLogBFF.service;
 
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
 
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.ContagemNotificacoesDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.recive.PaginaBffDTORecive;
@@ -9,19 +11,40 @@ import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.response.NotificacaoResponseDT
 @Service
 public class NotificacaoBffService {
 
-    public PaginaBffDTORecive<NotificacaoResponseDTO> buscarNotificacoes(String subject, int pagina) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'buscarNotificacoes'");
+    private final RestClient restClient;
+
+    public NotificacaoBffService(RestClient restClient) {
+        this.restClient = restClient;
     }
 
-    public void marcarComoLida(Long id, String subject) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'marcarComoLida'");
+    //Buscar Notificações (Paginado)
+    //Traz o histórico de notificações do usuário logado
+    public PaginaBffDTORecive<NotificacaoResponseDTO> buscarNotificacoes(int pagina) {
+        return restClient.get()
+                .uri("http://localhost:8082/apiCore/v1/notificacoes?pagina=" + pagina)
+                .retrieve()
+                // Novamente usamos o ParameterizedTypeReference para evitar o Type Erasure
+                .body(new ParameterizedTypeReference<PaginaBffDTORecive<NotificacaoResponseDTO>>() {});
     }
 
-    public ContagemNotificacoesDTO contarNaoLidas(String subject) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'contarNaoLidas'");
+    //Marcar como Lida
+    //Chamada quando o usuário clica em cima de uma notificação específica.
+    public void marcarComoLida(Long idNotificacao) {
+        restClient.patch() 
+                .uri("http://localhost:8082/apiCore/v1/notificacoes/" + idNotificacao + "/lida")
+                .retrieve()
+                .toBodilessEntity(); // Retorna Void (204 No Content ou 200 OK)
+    }
+
+    //Contar Não Lidas (Badge do Sininho)
+    //Essa rota deve ser extremamente rápida, pois o aplicativo pode chamá-la 
+    //constantemente (polling) para saber se a "bolinha vermelha" deve aparecer.
+ 
+    public ContagemNotificacoesDTO contarNaoLidas() {
+        return restClient.get()
+                .uri("http://localhost:8082/apiCore/v1/notificacoes/nao-lidas/count")
+                .retrieve()
+                .body(ContagemNotificacoesDTO.class);
     }
 
 }

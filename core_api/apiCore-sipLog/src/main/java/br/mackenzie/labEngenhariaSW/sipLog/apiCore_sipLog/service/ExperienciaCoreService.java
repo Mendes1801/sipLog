@@ -17,6 +17,7 @@ import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Experiencia;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Experiencia.Visibilidade;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Usuario;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.exception.AcessoNegadoException;
+import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.exception.RecursoNaoEncontradoException;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.repository.ComentarioRepository;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.repository.CurtidaRepository;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.repository.ExperienciaRepository;
@@ -185,4 +186,44 @@ public class ExperienciaCoreService {
         Pageable paginacao = PageRequest.of(pagina, 30); 
         return comentarioRepository.findByExperienciaIdOrderByDataCriacaoAsc(idPost, paginacao);
     }
+
+     //Edita um comentário validando a autoria e o vínculo com a experiência.
+    @Transactional
+    public Comentario editarComentario(Long idPost, Long idComentario, NovoComentarioDTO dto, String keycloakId) {
+        Comentario comentario = comentarioRepository.findById(idComentario)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Comentário não encontrado."));
+
+        // Proteção: Garante que o comentário pertence à postagem indicada na URL
+        if (!comentario.getExperiencia().getId().equals(idPost)) {
+            throw new IllegalArgumentException("O comentário não pertence a esta experiência.");
+        }
+
+        // Proteção: Garante que apenas o autor do comentário pode editá-lo
+        if (!comentario.getUsuario().getKeycloakId().equals(keycloakId)) {
+            throw new AcessoNegadoException("Você não tem permissão para editar este comentário.");
+        }
+
+        comentario.setTexto(dto.texto());
+        return comentarioRepository.save(comentario);
+    }
+
+
+     //Deleta um comentário validando a autoria.
+    @Transactional
+    public void deletarComentario(Long idPost, Long idComentario, String keycloakId) {
+        Comentario comentario = comentarioRepository.findById(idComentario)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Comentário não encontrado."));
+
+        if (!comentario.getExperiencia().getId().equals(idPost)) {
+            throw new IllegalArgumentException("O comentário não pertence a esta experiência.");
+        }
+
+        if (!comentario.getUsuario().getKeycloakId().equals(keycloakId)) {
+            throw new AcessoNegadoException("Você não tem permissão para deletar este comentário.");
+        }
+
+        comentarioRepository.delete(comentario);
+    }
+
+
 }

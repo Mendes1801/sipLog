@@ -175,4 +175,41 @@ public class ExperienciaCoreController {
         return ResponseEntity.noContent().build();
     }
 
+
+    //Editar um comentário existente
+    @PutMapping("/{id}/comentarios/{idComentario}")
+    public ResponseEntity<ComentarioDTO> editarComentario(
+            @PathVariable Long id,
+            @PathVariable Long idComentario,
+            @Valid @RequestBody NovoComentarioDTO dto,
+            @AuthenticationPrincipal Jwt principal) {
+
+        // Service executa a regra e retorna a entidade atualizada
+        Comentario c = experienciaService.editarComentario(id, idComentario, dto, principal.getSubject());
+
+        // Controller faz o De/Para para o DTO de resposta
+        ComentarioDTO response = new ComentarioDTO(
+            c.getId(),
+            c.getTexto(),
+            c.getDataCriacao(),
+            new UsuarioResumoDTO(
+                c.getUsuario().getId(),
+                c.getUsuario().getNome(),
+                c.getUsuario().getFotoAvatarUrl()
+            )
+        );
+
+        return ResponseEntity.ok(response);
+    }
+
+    //Deletar um comentário
+    @DeleteMapping("/{id}/comentarios/{idComentario}")
+    public ResponseEntity<Void> deletarComentario(
+            @PathVariable Long id,
+            @PathVariable Long idComentario,
+            @AuthenticationPrincipal Jwt principal) {
+
+        experienciaService.deletarComentario(id, idComentario, principal.getSubject());
+        return ResponseEntity.noContent().build(); // Retorna 204 No Content
+    }
 }
