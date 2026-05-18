@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.dto.dtoPost.UsuarioSyncDTO;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.dto.dtoPut.UsuarioUpdateDTO;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Seguidor;
+import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.TipoNotificacao;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Usuario;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.repository.SeguidorRepository;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.repository.UsuarioRepository;
@@ -20,10 +21,12 @@ public class UsuarioCoreService {
 
     private final UsuarioRepository usuarioRepository;
     private final SeguidorRepository seguidorRepository;
+    private final NotificacaoCoreService notificacaoCoreService;
 
-    UsuarioCoreService(UsuarioRepository usuarioRepository, SeguidorRepository seguidorRepository) {
+    UsuarioCoreService(UsuarioRepository usuarioRepository, NotificacaoCoreService notificacaoCoreService, SeguidorRepository seguidorRepository) {
         this.usuarioRepository = usuarioRepository;
         this.seguidorRepository = seguidorRepository;
+        this.notificacaoCoreService = notificacaoCoreService;
     }
 
     public Usuario getUsuarioPerfil(String keycloakID) {
@@ -103,7 +106,8 @@ public class UsuarioCoreService {
             novoSeguidor.setSeguido(alvo);
             seguidorRepository.save(novoSeguidor);
             
-            // TODO Futuro: Disparar notificação "Você tem um novo seguidor!"
+            //cria o "Seguidor novoSeguidor"
+            notificacaoCoreService.gerarNotificacao(eu, alvo, TipoNotificacao.NOVO_SEGUIDOR, null);
         }
     }
 

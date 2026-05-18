@@ -15,6 +15,7 @@ import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Comentario;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Curtida;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Experiencia;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Experiencia.Visibilidade;
+import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.TipoNotificacao;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Usuario;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.exception.AcessoNegadoException;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.exception.RecursoNaoEncontradoException;
@@ -36,8 +37,9 @@ public class ExperienciaCoreService {
     private final BebidaCoreService bebidaService;
     private final CurtidaRepository curtidaRepository;
     private final ComentarioRepository comentarioRepository;
+    private final NotificacaoCoreService notificacaoCoreService;
 
-    ExperienciaCoreService(UsuarioRepository usuarioRepository, CurtidaRepository curtidaRepository, ComentarioRepository comentarioRepository, SeguidorRepository seguidorRepository, ExperienciaRepository experienciaRepository, UsuarioCoreService usuarioService, BebidaCoreService bebidaService) {
+    ExperienciaCoreService(UsuarioRepository usuarioRepository, NotificacaoCoreService notificacaoCoreService,CurtidaRepository curtidaRepository, ComentarioRepository comentarioRepository, SeguidorRepository seguidorRepository, ExperienciaRepository experienciaRepository, UsuarioCoreService usuarioService, BebidaCoreService bebidaService) {
         this.usuarioRepository = usuarioRepository;
         this.experienciaRepository = experienciaRepository;
         this.seguidorRepository = seguidorRepository;
@@ -45,6 +47,7 @@ public class ExperienciaCoreService {
         this.bebidaService = bebidaService;
         this.curtidaRepository = curtidaRepository;
         this.comentarioRepository = comentarioRepository;
+        this.notificacaoCoreService = notificacaoCoreService;
     }
 
     // Método para registrar uma nova experiência
@@ -161,7 +164,9 @@ public class ExperienciaCoreService {
             novaCurtida.setExperiencia(post);
             curtidaRepository.save(novaCurtida);
             
-            // TODO Futuro: Disparar evento para gerar Notificação para o dono do post
+            // Disparar evento para gerar Notificação para o dono do post
+            // Depois verificar se o descurtir também gera uma noficação
+            notificacaoCoreService.gerarNotificacao(eu, post.getUsuario(), TipoNotificacao.CURTIDA, post.getId());
         }
     }
 
@@ -177,8 +182,10 @@ public class ExperienciaCoreService {
         comentario.setExperiencia(post);
         // A data de criação será preenchida automaticamente pelo @PrePersist da entidade
 
+        // Cria a notifica no repository Notificacao
+        notificacaoCoreService.gerarNotificacao(meuUsuario, post.getUsuario(), TipoNotificacao.COMENTARIO, post.getId());
+
         return comentarioRepository.save(comentario);
-        // TODO Futuro: Disparar evento para gerar Notificação para o dono do post
     }
 
     public Page<Comentario> listarComentarios(Long idPost, int pagina) {
