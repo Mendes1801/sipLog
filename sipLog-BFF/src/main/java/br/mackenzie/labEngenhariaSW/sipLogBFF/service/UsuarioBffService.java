@@ -6,7 +6,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
-import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.UsuarioPerfilDTO;
+import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.PerfilDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.UsuarioResumoDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.UsuarioSyncDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.UsuarioUpdateDTO;
@@ -67,20 +67,20 @@ public class UsuarioBffService {
     }
 
     //Busca o perfil do usuário logado (Meu Perfil)
-    public UsuarioPerfilDTO buscarMeuPerfil(String meuKeycloakId) {
+    public PerfilDTO buscarMeuPerfil(String meuKeycloakId) {
         return restClient.get()
                 .uri(apiCoreBaseUrl + "/apiCore/v1/usuarios/me")
                 .retrieve()
-                .body(UsuarioPerfilDTO.class);
+                .body(PerfilDTO.class);
     }
 
 
     //Busca o perfil de outro usuário, verificando se eu já o sigo
-    public UsuarioPerfilDTO buscarPerfilDeTerceiro(Long idAlvo, String meuKeycloakId) {
+    public PerfilDTO buscarPerfilDeTerceiro(Long idAlvo, String meuKeycloakId) {
         return restClient.get()
                 .uri(apiCoreBaseUrl + "/apiCore/v1/usuarios/perfil/" + idAlvo)
                 .retrieve()
-                .body(UsuarioPerfilDTO.class);
+                .body(PerfilDTO.class);
     }
 
     public void atualizarPerfil(String keycloakId, UsuarioUpdateDTO dto) {

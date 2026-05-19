@@ -15,6 +15,7 @@ import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Seguidor;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.TipoNotificacao;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Usuario;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.event.NotificacaoEvent;
+import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.repository.ExperienciaRepository;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.repository.SeguidorRepository;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.repository.UsuarioRepository;
 
@@ -24,9 +25,11 @@ public class UsuarioCoreService {
     private final UsuarioRepository usuarioRepository;
     private final SeguidorRepository seguidorRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final ExperienciaRepository experienciaRepository;
 
-    UsuarioCoreService(UsuarioRepository usuarioRepository, ApplicationEventPublisher eventPublisher, SeguidorRepository seguidorRepository) {
+    UsuarioCoreService(UsuarioRepository usuarioRepository, ExperienciaRepository experienciaRepository, ApplicationEventPublisher eventPublisher, SeguidorRepository seguidorRepository) {
         this.usuarioRepository = usuarioRepository;
+        this.experienciaRepository = experienciaRepository;
         this.eventPublisher = eventPublisher;
         this.seguidorRepository = seguidorRepository;
     }
@@ -121,4 +124,33 @@ public class UsuarioCoreService {
         return seguidorRepository.findBySeguidoId(idUsuario, paginacao); 
     }
 
+
+        //============================= Axiliares para o Controller =============================
+
+        //Conta total de seguidores
+        public long contarSeguidores(Long idUsuario) {
+            return seguidorRepository.countBySeguidoId(idUsuario);
+        }
+
+        //COnta total de seguindo
+        public long contarSeguindo(Long idUsuario) {
+            return seguidorRepository.countBySeguidorId(idUsuario);
+        }
+
+        // Verifica se eu sigo um usuário específico
+        public boolean isSeguidoPorMim(String meuKeycloakId, Long idAlvo) {
+            Usuario eu = getUsuarioPerfil(meuKeycloakId);
+            return seguidorRepository.existsBySeguidorIdAndSeguidoId(eu.getId(), idAlvo);
+        }
+
+        //Conta total de experiências postadas por um usuário
+        public long contarTotalSips(Long idUsuario) {
+            return experienciaRepository.countByUsuarioId(idUsuario);
+        }
+
+        //Calcula a nota média global do usuário com base nas avaliações recebidas
+        public double findNotaMediaByUsuarioId(Long idUsuario) {
+            Double media = experienciaRepository.findNotaMediaByUsuarioId(idUsuario);
+            return media != null ? media : 0.0; // Retorna 0.0 se o usuário ainda não tiver avaliações
+        }
 }

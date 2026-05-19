@@ -1,4 +1,6 @@
 package br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity;
+import org.hibernate.annotations.Formula;
+
 
 import jakarta.persistence.*;
 import lombok.Data;

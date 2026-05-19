@@ -135,7 +135,7 @@ public class ExperienciaBffService {
     }
 
     //Algoritmo de cálculo de tempo relativo (Padrão redes sociais)
-    private String calcularTempoDecorrido(LocalDateTime dataCriacao) {
+    public String calcularTempoDecorrido(LocalDateTime dataCriacao) {
         if (dataCriacao == null) return "Agora";
 
         LocalDateTime agora = LocalDateTime.now();
@@ -160,5 +160,7 @@ public class ExperienciaBffService {
             return "Há " + semanas + (semanas == 1 ? " semana" : " semanas");
         }
     }
+
+    
 
 }

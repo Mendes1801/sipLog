@@ -11,6 +11,7 @@ import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.dto.dtoPost.UsuarioSyn
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.dto.dtoPut.UsuarioUpdateDTO;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Usuario;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.service.UsuarioCoreService;
+import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequestMapping("/apiCore/v1/usuarios")
+@Slf4j
 public class UsuariosCoreController {
     
 
@@ -38,16 +40,30 @@ public class UsuariosCoreController {
 
     //Busca meu perfil
     @GetMapping("/me")
-    public ResponseEntity<UsuarioPerfilDTO> getMyUser(@AuthenticationPrincipal Jwt principal) {
+    public ResponseEntity<PerfilDTO> getMyUser(@AuthenticationPrincipal Jwt principal) {
 
-        String keycloakID = principal.getId();
+        String keycloakID = principal.getSubject();
         Usuario usuarioPerfil = usuarioService.getUsuarioPerfil(keycloakID);
 
-        UsuarioPerfilDTO usuarioPerfilDTO = new UsuarioPerfilDTO(
-            usuarioPerfil.getId(),
-            usuarioPerfil.getNome(),
-            usuarioPerfil.getBio(),
-            usuarioPerfil.getFotoAvatarUrl()
+        long totalSips = usuarioService.contarTotalSips(usuarioPerfil.getId());
+        double notaMediaGlobal = usuarioService.findNotaMediaByUsuarioId(usuarioPerfil.getId());
+        long seguindo = usuarioService.contarSeguindo(usuarioPerfil.getId());
+        long seguidores = usuarioService.contarSeguidores(usuarioPerfil.getId());
+
+
+        PerfilDTO usuarioPerfilDTO = new PerfilDTO(
+            new UsuarioPerfilDTO(
+                usuarioPerfil.getId(),
+                usuarioPerfil.getNome(),
+                usuarioPerfil.getBio(),
+                usuarioPerfil.getFotoAvatarUrl()
+            ),
+            new PerfilDTO.EstatisticasDTO(
+                (int) totalSips,
+                notaMediaGlobal,
+                (int) seguindo,
+                (int) seguidores
+            )
         );
 
         return ResponseEntity.ok(usuarioPerfilDTO);
@@ -60,6 +76,12 @@ public class UsuariosCoreController {
             @RequestBody UsuarioUpdateDTO dto) {
         Usuario usuario = usuarioService.atualizarPerfil(principal.getSubject(), dto);
 
+        long totalSips = usuarioService.contarTotalSips(usuario.getId());
+        double notaMediaGlobal = usuarioService.findNotaMediaByUsuarioId(usuario.getId());
+        long seguindo = usuarioService.contarSeguindo(usuario.getId());
+        long seguidores = usuarioService.contarSeguidores(usuario.getId());
+        
+
         PerfilDTO perfilDTO = new PerfilDTO(
             new UsuarioPerfilDTO(
                 usuario.getId(),
@@ -67,9 +89,13 @@ public class UsuariosCoreController {
                 usuario.getBio(),
                 usuario.getFotoAvatarUrl()
             ),
-            null, // Estatísticas omitidas para simplificação
-            null  // Últimas experiências podem ser preenchidas posteriormente
-            );
+            new PerfilDTO.EstatisticasDTO(
+                (int) totalSips,
+                notaMediaGlobal,
+                (int) seguindo,
+                (int) seguidores
+            )
+        );  
 
         return ResponseEntity.ok(perfilDTO);
     }
@@ -90,17 +116,32 @@ public class UsuariosCoreController {
 
     //Buscar Perfil de Terceiros
     @GetMapping("/perfil/{idAlvo}")
-    public ResponseEntity<UsuarioPerfilDTO> getPerfilDeTerceiro(
+    public ResponseEntity<PerfilDTO> getPerfilDeTerceiro(
             @PathVariable Long idAlvo, 
             @AuthenticationPrincipal Jwt principal) {
 
         Usuario usuario = usuarioService.getUsuarioPerfil(principal.getSubject());
-        UsuarioPerfilDTO perfilDTO = new UsuarioPerfilDTO(
-            usuario.getId(),
-            usuario.getNome(),
-            usuario.getBio(),
-            usuario.getFotoAvatarUrl()
+                
+        long totalSips = usuarioService.contarTotalSips(usuario.getId());
+        double notaMediaGlobal = usuarioService.findNotaMediaByUsuarioId(usuario.getId());
+        long seguindo = usuarioService.contarSeguindo(usuario.getId());
+        long seguidores = usuarioService.contarSeguidores(usuario.getId());
+        
+        PerfilDTO perfilDTO = new PerfilDTO(
+            new UsuarioPerfilDTO(
+                usuario.getId(),
+                usuario.getNome(),
+                usuario.getBio(),
+                usuario.getFotoAvatarUrl()
+            ),
+            new PerfilDTO.EstatisticasDTO(
+                (int) totalSips,
+                notaMediaGlobal,
+                (int) seguindo,
+                (int) seguidores
+            )
         );
+
         return ResponseEntity.ok(perfilDTO);
     }
 
@@ -134,4 +175,6 @@ public class UsuariosCoreController {
         // 3. Devolvemos os DTOs limpos para o BFF
         return ResponseEntity.ok(paginaDeDtos);
     }
+
+
 }

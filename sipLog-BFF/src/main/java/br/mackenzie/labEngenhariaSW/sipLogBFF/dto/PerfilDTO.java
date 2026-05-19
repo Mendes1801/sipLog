@@ -1,4 +1,4 @@
-package br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.dto.dtoGet;
+package br.mackenzie.labEngenhariaSW.sipLogBFF.dto;
 
 public record PerfilDTO(
         UsuarioPerfilDTO usuario,

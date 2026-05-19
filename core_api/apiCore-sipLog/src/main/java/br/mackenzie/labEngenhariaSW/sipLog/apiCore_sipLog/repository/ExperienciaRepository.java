@@ -49,4 +49,11 @@ public interface ExperienciaRepository extends JpaRepository<Experiencia, Long> 
     // CÁLCULO DE MÉDIA
     @Query("SELECT AVG(e.nota) FROM Experiencia e WHERE e.bebida.id = :bebidaId")
     Double calcularMediaGlobalDaBebida(@Param("bebidaId") Long bebidaId);
+
+    // Calcula a quantidade de experiências postadas por um usuário específico
+    long countByUsuarioId(Long idUsuario);
+
+    //Calcula a nota média global do usuário com base nas avaliações recebidas
+    @Query("SELECT AVG(e.nota) FROM Experiencia e WHERE e.usuario.id = :idUsuario")
+    Double findNotaMediaByUsuarioId(@Param("idUsuario") Long idUsuario);
 }

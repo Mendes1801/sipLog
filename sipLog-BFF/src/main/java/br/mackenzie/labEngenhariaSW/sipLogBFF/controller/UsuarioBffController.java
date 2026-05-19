@@ -11,7 +11,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.UsuarioPerfilDTO;
+
+import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.PerfilDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.UsuarioResumoDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.UsuarioUpdateDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.recive.PaginaBffDTORecive;
@@ -40,8 +41,8 @@ public class UsuarioBffController {
 
     // ITEM 1: Buscar o próprio perfil (Minha Estante)
     @GetMapping("/me")
-    public ResponseEntity<UsuarioPerfilDTO> getMeuPerfil(@AuthenticationPrincipal Jwt principal) {
-        UsuarioPerfilDTO perfil = usuarioService.buscarMeuPerfil(principal.getSubject());
+    public ResponseEntity<PerfilDTO> getMeuPerfil(@AuthenticationPrincipal Jwt principal) {
+        PerfilDTO perfil = usuarioService.buscarMeuPerfil(principal.getSubject());
         return ResponseEntity.ok(perfil);
     }
 
@@ -75,8 +76,8 @@ public class UsuarioBffController {
 
     // ITEM 1: Buscar o perfil de um amigo
     @GetMapping("/{idUsuario}")
-    public ResponseEntity<UsuarioPerfilDTO> getPerfilUsuario(@PathVariable Long idUsuario, @AuthenticationPrincipal Jwt principal) {
-        UsuarioPerfilDTO perfil = usuarioService.buscarPerfilDeTerceiro(idUsuario, principal.getSubject());
+    public ResponseEntity<PerfilDTO> getPerfilUsuario(@PathVariable Long idUsuario, @AuthenticationPrincipal Jwt principal) {
+        PerfilDTO perfil = usuarioService.buscarPerfilDeTerceiro(idUsuario, principal.getSubject());
         return ResponseEntity.ok(perfil);
     }
 

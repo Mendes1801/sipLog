@@ -52,4 +52,6 @@ public class Experiencia {
     @Formula("(SELECT COUNT(co.id) FROM tb_comentario co WHERE co.experiencia_id = id)")
     private Integer totalComentarios;
 
+    
+
 }
