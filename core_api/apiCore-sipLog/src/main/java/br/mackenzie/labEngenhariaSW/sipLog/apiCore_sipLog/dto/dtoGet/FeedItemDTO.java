@@ -8,7 +8,6 @@ public record FeedItemDTO(
         EngajamentoDTO engajamento
 ) {
     public record AutorDTO(Long idUsuario, String nome, String fotoAvatarUrl) {}
-    public record BebidaResumoDTO(Long idBebida, String nome, String categoria) {}
     public record ExperienciaFeedDTO(Double nota, String comentario, String fotoPostUrl, String data, String local) {}
     public record EngajamentoDTO(Boolean curtidoPorMim, Integer totalCurtidas, Integer totalComentarios) {}
 }

@@ -19,3 +19,10 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true # Muito útil para ver as queries rodando no console durante o desenvolvimento
+
+logging:
+  level:
+    root: INFO  # Nível padrão para todos os frameworks e bibliotecas
+    'br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog': DEBUG # Ativa o debug especificamente para o seu código
+    org.springframework.web: DEBUG # Mostra informações detalhadas de requisições HTTP
+    org.hibernate.SQL: DEBUG # Útil para ver as queries do banco de dados sendo executadas

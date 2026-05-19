@@ -46,6 +46,7 @@ public class BebidaCoreService {
         Bebida bebida = new Bebida();
         bebida.setNome(dto.nome());
         bebida.setCategoria(dto.categoria());
+        bebida.setFabricante(dto.fabricante());
         bebida.setCaracteristicas(dto.caracteristicas()); // Salva o dicionário JSONB direto no banco!
         
         return bebidaRepository.save(bebida);

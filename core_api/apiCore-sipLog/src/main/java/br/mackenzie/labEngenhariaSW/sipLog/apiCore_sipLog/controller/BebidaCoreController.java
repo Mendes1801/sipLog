@@ -1,7 +1,7 @@
 package br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.controller;
 
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.dto.dtoGet.BebidaDetalheDTO;
-import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.dto.dtoGet.FeedItemDTO.BebidaResumoDTO;
+import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.dto.dtoGet.BebidaResumoDTO;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.dto.dtoPost.NovaBebidaDTO;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Bebida;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.service.BebidaCoreService;

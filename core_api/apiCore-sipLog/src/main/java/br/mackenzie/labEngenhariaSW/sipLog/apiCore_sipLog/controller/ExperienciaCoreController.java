@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 
 @RestController
-@RequestMapping("/apiCore/v1/experiencia")
+@RequestMapping("/apiCore/v1/experiencias")
 public class ExperienciaCoreController {
     
     private final ExperienciaCoreService experienciaService;

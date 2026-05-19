@@ -7,9 +7,9 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
+import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.BebidaResumoDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.DetalheBebidaDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.NovaBebidaDTO;
-import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.recive.FeedItemDTORecive.BebidaResumoDTO;
 
 @Service
 

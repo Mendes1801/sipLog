@@ -12,7 +12,7 @@ api:
   core:
     # Se a variável API_CORE_BASE_URL existir no sistema, ele usa ela.
     # Se não existir ele usa o localhost.
-    base-url: ${CORE_API_URL:http://localhost:8082/apiCore}
+    base-url: ${CORE_API_URL:http://localhost:8082}
 
 logging:
   level:
@@ -20,3 +20,4 @@ logging:
     'br.mackenzie.labEngenhariaSW.sipLogBFF': DEBUG # Ativa o debug especificamente para o seu código
     org.springframework.web: DEBUG # Mostra informações detalhadas de requisições HTTP
     org.hibernate.SQL: DEBUG # Útil para ver as queries do banco de dados sendo executadas
+    org.springdoc: DEBUG # Para ver detalhes das operações do SpringDoc OpenAPI

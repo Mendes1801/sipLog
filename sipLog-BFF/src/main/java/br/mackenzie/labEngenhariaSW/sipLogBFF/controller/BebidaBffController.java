@@ -9,9 +9,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.BebidaResumoDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.DetalheBebidaDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.NovaBebidaDTO;
-import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.recive.FeedItemDTORecive.BebidaResumoDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.service.BebidaBffService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

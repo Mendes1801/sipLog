@@ -13,12 +13,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.dto.dtoGet.BebidaResumoDTO;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.dto.dtoGet.FeedItemDTO;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Experiencia;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.service.FeedCoreService;
 
 @RestController
-@RequestMapping("/internal/v1/feed")
+@RequestMapping("/apiCore/v1/feed")
 public class FeedCoreController {
 
     private FeedCoreService feedService;
@@ -26,7 +27,6 @@ public class FeedCoreController {
     FeedCoreController(FeedCoreService feedService) {
         this.feedService = feedService;
     }
-
 
 
     // Rota: /internal/v1/feed/me
@@ -61,7 +61,7 @@ public class FeedCoreController {
                     exp.getUsuario().getNome(),
                     exp.getUsuario().getFotoAvatarUrl()
                 ),
-                new FeedItemDTO.BebidaResumoDTO(
+                new BebidaResumoDTO(
                     exp.getBebida().getId(),
                     exp.getBebida().getNome(),
                     exp.getBebida().getCategoria()
@@ -113,7 +113,7 @@ public class FeedCoreController {
                     exp.getUsuario().getNome(),
                     exp.getUsuario().getFotoAvatarUrl()
                 ),
-                new FeedItemDTO.BebidaResumoDTO(
+                new BebidaResumoDTO(
                     exp.getBebida().getId(),
                     exp.getBebida().getNome(),
                     exp.getBebida().getCategoria()
@@ -166,7 +166,7 @@ public class FeedCoreController {
                     exp.getUsuario().getNome(),
                     exp.getUsuario().getFotoAvatarUrl()
                 ),
-                new FeedItemDTO.BebidaResumoDTO(
+                new BebidaResumoDTO(
                     exp.getBebida().getId(),
                     exp.getBebida().getNome(),
                     exp.getBebida().getCategoria()
@@ -213,7 +213,7 @@ public class FeedCoreController {
                         exp.getUsuario().getNome(),
                         exp.getUsuario().getFotoAvatarUrl()
                 ),
-                new FeedItemDTO.BebidaResumoDTO(
+                new BebidaResumoDTO(
                         exp.getBebida().getId(),
                         exp.getBebida().getNome(),
                         exp.getBebida().getCategoria()

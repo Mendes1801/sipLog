@@ -12,7 +12,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/internal/v1/notificacoes")
+@RequestMapping("/apiCore/v1/notificacoes")
 public class NotificacaoCoreController {
 
     private final NotificacaoCoreService notificacaoService;
