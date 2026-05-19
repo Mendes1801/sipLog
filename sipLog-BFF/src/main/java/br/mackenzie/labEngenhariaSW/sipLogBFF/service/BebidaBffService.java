@@ -29,7 +29,7 @@ public class BebidaBffService {
     //Buscar no Catálogo (Autocomplete)
     public List<BebidaResumoDTO> buscarNoCatalogo(String q) {
         return restClient.get()
-                .uri(apiCoreBaseUrl + "/v1/bebidas/buscar?q=" + q)
+                .uri(apiCoreBaseUrl + "/apiCore/v1/bebidas/buscar?q=" + q)
                 .retrieve()
                 // Como é uma Lista, usamos o ParameterizedTypeReference para o Spring saber converter o JSON corretamente
                 .body(new ParameterizedTypeReference<List<BebidaResumoDTO>>() {});
@@ -39,7 +39,7 @@ public class BebidaBffService {
      //Ver Detalhes da Bebida
     public DetalheBebidaDTO buscarPorId(Long id) {
         return restClient.get()
-                .uri(apiCoreBaseUrl + "/v1/bebidas/" + id)
+                .uri(apiCoreBaseUrl + "/apiCore/v1/bebidas/" + id)
                 .retrieve()
                 .body(DetalheBebidaDTO.class);
     }
@@ -48,7 +48,7 @@ public class BebidaBffService {
     //3. Criação Colaborativa de Nova Bebida
     public BebidaResumoDTO adicionarBebida(NovaBebidaDTO novaBebida) {
          return restClient.post()
-                .uri(apiCoreBaseUrl + "/v1/bebidas")
+                .uri(apiCoreBaseUrl + "/apiCore/v1/bebidas")
                 .body(novaBebida) // Envia o JSON com a nova bebida
                 .retrieve()
                 .body(BebidaResumoDTO.class); // Recebemos o objeto com o ID preenchido!
