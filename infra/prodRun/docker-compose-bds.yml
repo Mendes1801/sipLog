@@ -1,0 +1,32 @@
+services:
+  postgres-local:
+    image: postgres:15-alpine
+    container_name: sip_postgres_local
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - sip_db_data:/var/lib/postgresql/data
+    networks:
+      - sip-network
+
+  postgres-keycloak:
+    image: postgres:15-alpine
+    container_name: sip_postgres_keycloak
+    environment:
+      POSTGRES_DB: ${KC_DB_NAME}
+      POSTGRES_USER: ${KC_DB_USER}
+      POSTGRES_PASSWORD: ${KC_DB_PASSWORD}
+    volumes:
+      - keycloak_db_data:/var/lib/postgresql/data
+    networks:
+      - sip-network
+
+volumes:
+  sip_db_data:
+  keycloak_db_data:
+
+networks:
+  sip-network:
+    external: true

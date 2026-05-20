@@ -1,0 +1,151 @@
+pipeline {
+    agent any
+
+    tools {
+        maven 'Maven3' 
+        jdk 'JDK21'    
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main',
+                    url: 'https://github.com/Mendes1801/sipLog.git' 
+            }
+        }
+
+        stage('Build (Compilação)') {
+            steps {
+                echo "--- Compilando a Core API ---"
+                dir('core_api/apiCore-sipLog') {
+                    sh 'mvn clean compile -DskipTests'
+                }
+
+                echo "--- Compilando o BFF ---"
+                dir('sipLog-BFF') {
+                    sh 'mvn clean compile -DskipTests'
+                }
+            }
+        }
+
+        stage('Test (Testes Unitários)') {
+            steps {
+                echo "--- Testando a Core API ---"
+                dir('core_api/apiCore-sipLog') {
+                    sh 'mvn test'
+                }
+
+                echo "--- Testando o BFF ---"
+                dir('sipLog-BFF') {
+                    sh 'mvn test'
+                }
+            }
+            post {
+                always {
+                    // O asterisco (**) fará o Jenkins procurar relatórios de teste dentro de ambas as pastas
+                    junit allowEmptyResults: true,
+                          testResults: '**/target/surefire-reports/*.xml'
+                }
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube-Server') {
+                    // Analisando a API (vai criar um projeto no Sonar)
+                    dir('core_api/apiCore-sipLog') {
+                        sh 'MAVEN_OPTS="--add-opens java.base/java.lang=ALL-UNNAMED" mvn sonar:sonar -Dsonar.projectKey=sipLog-core -Dsonar.projectName="SipLog Core API"'
+                    }
+                    // Analisando o BFF (vai criar OUTRO projeto no Sonar)
+                    dir('sipLog-BFF') {
+                        sh 'MAVEN_OPTS="--add-opens java.base/java.lang=ALL-UNNAMED" mvn sonar:sonar -Dsonar.projectKey=sipLog-bff -Dsonar.projectName="SipLog BFF"'
+                    }
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+
+        stage('Package (Gerar Arquivos .jar)') {
+            steps {
+                echo "--- Empacotando a Core API ---"
+                dir('core_api/apiCore-sipLog') {
+                    sh 'mvn package -DskipTests'
+                }
+
+                echo "--- Empacotando o BFF ---"
+                dir('sipLog-BFF') {
+                    sh 'mvn package -DskipTests'
+                }
+            }
+        }
+
+        stage('Deploy to App Server') {
+            steps {
+                withCredentials([sshUserPrivateKey(credentialsId: 'app-server-ssh', keyFileVariable: 'SSH_KEY')]) {
+                    sh """
+                        ssh -i \$SSH_KEY -o StrictHostKeyChecking=no ubuntu@172.31.23.135 '
+                            # 1. Configurações Iniciais (Rede)
+                            docker network inspect sip-network >/dev/null 2>&1 || docker network create sip-network
+        
+                            # 2. Garante o código fonte
+                            if [ ! -d "/home/ubuntu/sipLog" ]; then
+                                echo "Primeira vez: Clonando repositório..."
+                                git clone https://github.com/Mendes1801/sipLog.git /home/ubuntu/sipLog
+                                FIRST_TIME=true
+                            else
+                                echo "Deploy incremental: Atualizando código..."
+                                cd /home/ubuntu/sipLog && git pull origin main
+                                FIRST_TIME=false
+                            fi
+        
+                            # 3. Prepara pastas de build
+                            mkdir -p /home/ubuntu/sipLog/core_api/apiCore-sipLog/target
+                            mkdir -p /home/ubuntu/sipLog/sipLog-BFF/target
+        
+                            # 4. Deploy Condicional
+                            cd /home/ubuntu/sipLog/infra/prodRun
+        
+                            if [ "\$FIRST_TIME" = true ]; then
+                                echo "Executando setup completo do ambiente..."
+                                sudo docker-compose -f docker-compose-bds.yml up -d
+                                sudo docker-compose -f docker-compose-keycloak.yml up -d
+                                # Aguarda um pouco para o Keycloak subir antes de subir o Spring
+                                sleep 30
+                                sudo docker-compose -f docker-compose-spring.yml up -d --build
+                            else
+                                echo "Executando deploy apenas dos serviços Spring..."
+                                # Apenas sobe o que mudou nos serviços Spring
+                                sudo docker-compose -f docker-compose-spring.yml up -d --build
+                            fi
+                        '
+                    """
+                    
+                    //(SCP continua o mesmo para enviar os arquivos .jar para os alvos antes do up --build)
+                    sh """
+                        scp -i \$SSH_KEY -o StrictHostKeyChecking=no core_api/apiCore-sipLog/target/*.jar ubuntu@172.31.23.135:/home/ubuntu/sipLog/core_api/apiCore-sipLog/target/
+                        scp -i \$SSH_KEY -o StrictHostKeyChecking=no sipLog-BFF/target/*.jar ubuntu@172.31.23.135:/home/ubuntu/sipLog/sipLog-BFF/target/
+                    """
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Pipeline executado com sucesso para a Core API e BFF!'
+        }
+        failure {
+            echo 'Pipeline falhou. Verifique os logs.'
+        }
+        always {
+            cleanWs() 
+        }
+    }
+}

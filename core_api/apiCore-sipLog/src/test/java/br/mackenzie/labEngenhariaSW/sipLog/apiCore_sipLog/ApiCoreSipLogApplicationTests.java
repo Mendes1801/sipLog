@@ -1,10 +1,15 @@
 package br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog;
 
+import java.security.Security;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+
+import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.config.JwtConfig;
+import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.config.SecurityConfig;
 
 // Injetamos as configurações do H2 direto no coração do teste!
 @SpringBootTest(properties = {
@@ -20,6 +25,12 @@ class ApiCoreSipLogApplicationTests {
 
     @MockitoBean
     private JwtDecoder jwtDecoder;
+
+    @MockitoBean
+    private JwtConfig jwtConfig;
+
+    @MockitoBean
+    private SecurityConfig securityConfig;
 
     @Test
     void contextLoads() {

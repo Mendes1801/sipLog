@@ -1,0 +1,32 @@
+services:
+  core-api-local:
+    build:
+      context: ../../core_api/apiCore-sipLog
+      dockerfile: Dockerfile.core-local
+    container_name: siplog-core-api-local
+    restart: on-failure
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-local:5432/${DB_NAME}
+      - KEYCLOAK_SERVER_URL=${KC_BACKEND_URL}/realms/${KC_REALM}
+    networks:
+      - sip-network
+
+  bff-local:
+    build:
+      context: ../../sipLog-BFF
+      dockerfile: Dockerfile.bff-local
+    container_name: siplog-bff-local
+    restart: on-failure
+    ports:
+      - "8081:8081"
+    environment:
+      - CORE_API_URL=${CORE_API_URL}
+      - KEYCLOAK_SERVER_URL=${KC_BACKEND_URL}/realms/${KC_REALM}
+    networks:
+      - sip-network
+
+networks:
+  sip-network:
+    external: true
