@@ -1,7 +1,5 @@
 package br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog;
 
-import java.security.Security;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
