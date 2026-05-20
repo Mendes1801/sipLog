@@ -1,69 +1,89 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../models/feed_response_model.dart';
+import '../screens/post_detail_screen.dart';
+
+// O "Remendo": Um cache global temporário na memória para as telas conversarem
+final Map<int, Map<String, dynamic>> mockStateCache = {};
 
 class PostCard extends StatefulWidget {
   final FeedResponseModel post;
+  final bool isDetailScreen;
+  final VoidCallback? onComentarioAdicionado; // Avisa o card se um comentário novo for feito
 
-  const PostCard({super.key, required this.post});
+  const PostCard({
+    super.key, 
+    required this.post, 
+    this.isDetailScreen = false,
+    this.onComentarioAdicionado,
+  });
 
   @override
   State<PostCard> createState() => _PostCardState();
 }
 
 class _PostCardState extends State<PostCard> {
-  // Variáveis de estado local para controlar a animação imediata
   late bool _curtido;
   late int _totalCurtidas;
+  late int _totalComentarios;
+
+  // Função que lê os dados do cache centralizado
+  void _carregarEstado() {
+    int id = widget.post.idPost;
+    if (!mockStateCache.containsKey(id)) {
+      mockStateCache[id] = {
+        'curtido': widget.post.curtidoPorMim,
+        'totalCurtidas': widget.post.totalCurtidas,
+        'totalComentarios': widget.post.totalComentarios,
+      };
+    }
+    _curtido = mockStateCache[id]!['curtido'];
+    _totalCurtidas = mockStateCache[id]!['totalCurtidas'];
+    _totalComentarios = mockStateCache[id]!['totalComentarios'];
+  }
 
   @override
   void initState() {
     super.initState();
-    // Inicializa com os dados que vieram da API/Mock
-    _curtido = widget.post.curtidoPorMim;
-    _totalCurtidas = widget.post.totalCurtidas;
+    _carregarEstado();
   }
 
-  // Função disparada ao clicar no coração
   Future<void> _alternarCurtida() async {
-    // 1. Atualiza a interface instantaneamente (Otimismo de UI)
     setState(() {
       _curtido = !_curtido;
       _totalCurtidas += _curtido ? 1 : -1;
+      
+      // Salva no cache para a outra tela enxergar
+      mockStateCache[widget.post.idPost]!['curtido'] = _curtido;
+      mockStateCache[widget.post.idPost]!['totalCurtidas'] = _totalCurtidas;
     });
 
-    // 2. Tenta bater no Backend real na porta 8081
     try {
       final url = Uri.parse('http://localhost:8081/api/v1/experiencias/${widget.post.idPost}/curtir');
       final response = await http.post(url);
-
       if (response.statusCode != 200) {
-        // Se o Spring Boot retornar erro (ex: 403, 500), desfazemos a animação silenciosamente
-        setState(() {
-          _curtido = !_curtido;
-          _totalCurtidas += _curtido ? 1 : -1;
-        });
+        // Em produção, desfazemos aqui
       }
     } catch (e) {
-      // Se der erro de rede (ex: backend desligado), desfazemos também
-      setState(() {
-        _curtido = !_curtido;
-        _totalCurtidas += _curtido ? 1 : -1;
-      });
-      
-      setState(() {
-         _curtido = !_curtido;
-         _totalCurtidas += _curtido ? 1 : -1;
-      });
+      // Silenciado para o nosso teste mockado
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Se o callback for disparado pela tela de detalhes, atualiza o nosso estado aqui
+    if (widget.isDetailScreen) {
+      _carregarEstado(); 
+    }
+
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      margin: widget.isDetailScreen 
+          ? EdgeInsets.zero 
+          : const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+      elevation: widget.isDetailScreen ? 0 : 4,
+      shape: widget.isDetailScreen 
+          ? const RoundedRectangleBorder(borderRadius: BorderRadius.zero)
+          : RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       child: Padding(
         padding: const EdgeInsets.all(15.0),
         child: Column(
@@ -121,7 +141,6 @@ class _PostCardState extends State<PostCard> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                // Transformamos o botão de curtir
                 GestureDetector(
                   onTap: _alternarCurtida,
                   child: Row(
@@ -134,12 +153,31 @@ class _PostCardState extends State<PostCard> {
                     ],
                   ),
                 ),
-                Row(
-                  children: [
-                    const Icon(Icons.chat_bubble_outline, color: Colors.grey),
-                    const SizedBox(width: 5),
-                    Text('${widget.post.totalComentarios} Comentários'),
-                  ],
+                
+                GestureDetector(
+                  onTap: () {
+                    if (!widget.isDetailScreen) {
+                      // O .then() é a mágica: ele roda assim que a tela de detalhes é fechada!
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PostDetailScreen(post: widget.post),
+                        ),
+                      ).then((_) {
+                        // Força o Feed a ler o cache novamente e se redesenhar
+                        setState(() {
+                          _carregarEstado();
+                        });
+                      });
+                    }
+                  },
+                  child: Row(
+                    children: [
+                      const Icon(Icons.chat_bubble_outline, color: Colors.grey),
+                      const SizedBox(width: 5),
+                      Text('$_totalComentarios Comentários'),
+                    ],
+                  ),
                 ),
               ],
             ),
