@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'screens/feed_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -10,67 +11,72 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'SIP Log Mobile',
+      title: 'SipLog',
+      debugShowCheckedModeBanner: false, // Tira aquela faixa chata de "DEBUG" da tela
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
+        primarySwatch: Colors.deepPurple, // Podemos ajustar para as cores exatas do seu Figma/Design depois
       ),
-      home: const HomeScreen(),
+      home: const TelaNavegacaoBase(),
     );
   }
 }
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+class TelaNavegacaoBase extends StatefulWidget {
+  const TelaNavegacaoBase({super.key});
+
+  @override
+  State<TelaNavegacaoBase> createState() => _TelaNavegacaoBaseState();
+}
+
+class _TelaNavegacaoBaseState extends State<TelaNavegacaoBase> {
+  int _indiceAtual = 0;
+
+  
+  final List<Widget> _telas = [
+    const FeedScreen(), // A Mágica Acontece Aqui!
+    const Center(child: Text('Pesquisa', style: TextStyle(fontSize: 20))),
+    const Center(child: Text('Notificações', style: TextStyle(fontSize: 20))),
+    const Center(child: Text('Perfil', style: TextStyle(fontSize: 20))),
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('SIP Log'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: const Text('SipLog'),
+        centerTitle: true,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Imagem base
-            Image.asset('assets/images/Base PNG.png'),
-            const SizedBox(height: 20),
-            // Botões usando as imagens da documentação
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildButton('assets/images/BT_Vinho.png', 'Vinhos'),
-                _buildButton('assets/images/BT_Profile.png', 'Perfil'),
-                _buildButton('assets/images/BT_Amigos.png', 'Amigos'),
-              ],
-            ),
-            const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildButton('assets/images/BT_Mapa.png', 'Mapa'),
-                _buildButton('assets/images/BT_Notificação.png', 'Notificações'),
-                _buildButton('assets/images/BT_Pesquisar.png', 'Pesquisar'),
-              ],
-            ),
-            const SizedBox(height: 20),
-            _buildButton('assets/images/BT_AdcFoto.png', 'Adicionar Foto'),
-          ],
-        ),
+      body: _telas[_indiceAtual],
+bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _indiceAtual,
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: Colors.white,
+        selectedItemColor: Colors.deepPurple, // A cor do texto quando selecionado
+        unselectedItemColor: Colors.grey,
+        onTap: (index) {
+          setState(() {
+            _indiceAtual = index;
+          });
+        },
+        items: [
+          BottomNavigationBarItem(
+            icon: Image.asset('assets/images/BT_Vinho.png', width: 28, height: 28), // Usando o ícone de Vinho/Bebida para o Feed
+            label: 'Feed',
+          ),
+          BottomNavigationBarItem(
+            icon: Image.asset('assets/images/BT_Pesquisar.png', width: 28, height: 28),
+            label: 'Buscar',
+          ),
+          BottomNavigationBarItem(
+            icon: Image.asset('assets/images/BT_Notificação.png', width: 28, height: 28),
+            label: 'Avisos',
+          ),
+          BottomNavigationBarItem(
+            icon: Image.asset('assets/images/BT_Profile.png', width: 28, height: 28),
+            label: 'Perfil',
+          ),
+        ],
       ),
-    );
-  }
-
-  Widget _buildButton(String imagePath, String label) {
-    return Column(
-      children: [
-        Image.asset(imagePath, width: 50, height: 50),
-        const SizedBox(height: 8),
-        Text(label, style: const TextStyle(fontSize: 12)),
-      ],
     );
   }
 }
