@@ -14,13 +14,6 @@ services:
     volumes:
       - ./volume/postgres:/var/lib/postgresql/data
 
-  redis:
-    image: redis:7-alpine
-    container_name: sip_redis
-    ports:
-      - "6379:6379"
-    restart: unless-stopped
-
   core-api:
     build:
       context: ../../core_api/apiCore-sipLog
@@ -30,15 +23,14 @@ services:
       - "8081:8081"
     depends_on:
       - postgres
-      - redis
     environment:
       - JAVA_OPTS=${JAVA_OPTS}
       - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${DB_NAME}
       - SPRING_DATASOURCE_USERNAME=${DB_USER}
       - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
-      - SPRING_DATA_REDIS_HOST=${REDIS_HOST}
-      #KEYCLOAK_SERVER_URL=${KC_BACKEND_URL}
+      - KEYCLOAK_SERVER_BASE_URL=${KC_BACKEND_URL}
+      - KEYCLOAK_SERVER_URL=${KC_BACKEND_URL}/realms/${KC_REALM}
       # Nota: Se em produção você também tiver o Keycloak containerizado, adicione aqui. Se for externo, use o IP.
 
   bff:
@@ -50,9 +42,9 @@ services:
       - "8080:8080"
     depends_on:
       - core-api
-      - redis
     environment:
       - JAVA_OPTS=${JAVA_OPTS}
       - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
       - CORE_API_URL=${CORE_API_URL}
-      - SPRING_DATA_REDIS_HOST=${REDIS_HOST}
+      - KEYCLOAK_SERVER_BASE_URL=${KC_BACKEND_URL}
+      - KEYCLOAK_SERVER_URL=${KC_BACKEND_URL}/realms/${KC_REALM}

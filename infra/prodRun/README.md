@@ -3,7 +3,7 @@
 ### Ao criar a VM
 É necessário criar um network docker dentro da VM
 ```bash
-docker network create sip-network
+sudo docker network create sip-network
 ```
 
 ### Para subir tudos os serviços pela primeira vez
@@ -12,12 +12,12 @@ Para subir todos os serviços pela primeira vez, utilize o comando abaixo.
 [!Note] A rede docker já precisa existir
 
 ```bash
-docker-compose -f docker-compose-bds.yml -f docker-compose-keycloak.yml -f docker-compose-spring.yml up -d
+sudo docker compose -f docker-compose-bds.yml -f docker-compose-keycloak.yml -f docker-compose-spring.yml up -d
 ```
 
 ### Para subir somente os serviços spring (BFF e API_CORE)
 Para subir os serviços do BFF e API_CORE, utilize os comandos abaixo.
 
 ```bash
-docker-compose -f docker-compose-spring.yml up -d --build
+sudo docker compose -f docker-compose-spring.yml up -d --build
 ```
