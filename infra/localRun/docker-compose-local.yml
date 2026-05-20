@@ -1,57 +1,53 @@
 version: '3.8'
 
 services:
-  # Banco de Dados da Aplicação (SipLog)
   postgres-local:
     image: postgres:15-alpine
     container_name: sip_postgres_local
     environment:
-      POSTGRES_DB: sip_db
-      POSTGRES_USER: sip_user
-      POSTGRES_PASSWORD: sip_password
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
       - sip_db_data:/var/lib/postgresql/data
 
-  # Banco de Dados exclusivo do Keycloak
   postgres-keycloak:
     image: postgres:15-alpine
     container_name: sip_postgres_keycloak
     environment:
-      POSTGRES_DB: keycloak
-      POSTGRES_USER: keycloak
-      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ${KC_DB_NAME}
+      POSTGRES_USER: ${KC_DB_USER}
+      POSTGRES_PASSWORD: ${KC_DB_PASSWORD}
     volumes:
       - keycloak_db_data:/var/lib/postgresql/data
 
-  # Servidor de Autenticação Keycloak
   keycloak:
     image: quay.io/keycloak/keycloak:24.0.0
     container_name: sip_keycloak_local
     command: start-dev
     environment:
       KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://postgres-keycloak:5432/keycloak
-      KC_DB_USERNAME: keycloak
-      KC_DB_PASSWORD: password
-
+      KC_DB_URL: jdbc:postgresql://postgres-keycloak:5432/${KC_DB_NAME}
+      KC_DB_USERNAME: ${KC_DB_USER}
+      KC_DB_PASSWORD: ${KC_DB_PASSWORD}
       KC_HOSTNAME_STRICT: "false"
       KC_HOSTNAME_STRICT_HTTPS: "false"
-      
       KC_HTTP_ENABLED: "true"
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
+      KEYCLOAK_ADMIN: ${KC_ADMIN_USER}
+      KEYCLOAK_ADMIN_PASSWORD: ${KC_ADMIN_PASSWORD}
     ports:
       - "8080:8080"
     depends_on:
       - postgres-keycloak
-
-  redis-local:
-    image: redis:7-alpine
-    container_name: sip_redis_local
-    ports:
-      - "6379:6379"
+    #healthcheck:
+    #  # Testa se a porta do Keycloak está respondendo
+    #  test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/8080"]
+    #  interval: 15s      # Verifica a cada 15 segundos
+    #  timeout: 5s        # Considera falha se não responder em 5 segundos
+    #  retries: 10        # Tenta até 10 vezes (2.5 minutos de espera)
+    #  start_period: 30s  # Dá 30 segundos de 'folga' no início
 
   core-api-local:
     build:
@@ -60,17 +56,17 @@ services:
     container_name: siplog-core-api-local
     ports:
       - "8082:8082"
+    restart: on-failure
     depends_on:
+      - keycloak
       - postgres-local
-      - redis-local
-      - keycloak # Agora depende do Keycloak estar de pé
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-local:5432/sip_db
-      - SPRING_DATASOURCE_USERNAME=sip_user
-      - SPRING_DATASOURCE_PASSWORD=sip_password
-      - SPRING_DATA_REDIS_HOST=redis-local
-      # URL que a API usará para validar o token internamente
-      - KEYCLOAK_SERVER_URL=http://keycloak:8080/realms/BFF
+      - JAVA_OPTS=${JAVA_OPTS}
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-local:5432/${DB_NAME}
+      - SPRING_DATASOURCE_USERNAME=${DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+      - KEYCLOAK_SERVER_URL=${KC_BACKEND_URL}/realms/${KC_REALM}
 
   bff-local:
     build:
@@ -80,14 +76,15 @@ services:
     ports:
       - "8081:8081"
     depends_on:
-      - core-api-local
-      - redis-local
       - keycloak
+      - core-api-local
     environment:
-      - CORE_API_URL=http://core-api-local:8082
-      - SPRING_DATA_REDIS_HOST=redis-local
-      # O BFF precisa saber onde redirecionar para o login
-      - KEYCLOAK_SERVER_URL=http://keycloak:8080
+      - JAVA_OPTS=${JAVA_OPTS}
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
+      - CORE_API_URL=${CORE_API_URL}
+      - KEYCLOAK_SERVER_BASE_URL=${KC_BACKEND_URL}
+      - KEYCLOAK_SERVER_URL=${KC_BACKEND_URL}/realms/${KC_REALM}
+
 
 volumes:
   sip_db_data:

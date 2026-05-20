@@ -37,4 +37,5 @@ build/
 GEMINI.md
 
 ### Ambientes ###
-.env
+*.env*
+

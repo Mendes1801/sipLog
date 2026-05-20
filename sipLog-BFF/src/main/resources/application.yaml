@@ -3,7 +3,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://keycloak:8080/realms/BFF
+          issuer-uri: ${KEYCLOAK_SERVER_URL}
 
 server:
   port: 8081
