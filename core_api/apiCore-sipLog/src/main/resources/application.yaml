@@ -12,9 +12,9 @@ spring:
           issuer-uri: ${KEYCLOAK_SERVER_URL}
           
   datasource:
-    url: jdbc:postgresql://postgres-local:5432/sip_db
-    username: sip_user
-    password: sip_password
+    url: jdbc:postgresql://postgres-local:5432/${DB_NAME}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: update

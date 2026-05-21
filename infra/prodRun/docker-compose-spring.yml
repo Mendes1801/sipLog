@@ -10,6 +10,8 @@ services:
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-local:5432/${DB_NAME}
       - KEYCLOAK_SERVER_URL=${KC_BACKEND_URL}/realms/${KC_REALM}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
     networks:
       - sip-network
 
