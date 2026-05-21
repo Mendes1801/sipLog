@@ -39,7 +39,6 @@ dependencies:
   latlong2: ^0.9.0
   image_picker: ^1.0.7 # Verifique a versão mais recente no pub.dev
   http: ^1.6.0
-
 dev_dependencies:
   flutter_test:
     sdk: flutter

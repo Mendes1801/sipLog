@@ -2,20 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../models/feed_response_model.dart';
 import '../screens/post_detail_screen.dart';
+import '../services/mock_feed_service.dart'; // Necessário para chamar o apagar
 
-// O "Remendo": Um cache global temporário na memória para as telas conversarem
 final Map<int, Map<String, dynamic>> mockStateCache = {};
 
 class PostCard extends StatefulWidget {
   final FeedResponseModel post;
   final bool isDetailScreen;
-  final VoidCallback? onComentarioAdicionado; // Avisa o card se um comentário novo for feito
+  final VoidCallback? onComentarioAdicionado;
+  final VoidCallback? onPostDeletado; // NOVO: Gatilho para avisar a tela mãe
 
   const PostCard({
     super.key, 
     required this.post, 
     this.isDetailScreen = false,
     this.onComentarioAdicionado,
+    this.onPostDeletado, // NOVO
   });
 
   @override
@@ -27,7 +29,6 @@ class _PostCardState extends State<PostCard> {
   late int _totalCurtidas;
   late int _totalComentarios;
 
-  // Função que lê os dados do cache centralizado
   void _carregarEstado() {
     int id = widget.post.idPost;
     if (!mockStateCache.containsKey(id)) {
@@ -52,8 +53,6 @@ class _PostCardState extends State<PostCard> {
     setState(() {
       _curtido = !_curtido;
       _totalCurtidas += _curtido ? 1 : -1;
-      
-      // Salva no cache para a outra tela enxergar
       mockStateCache[widget.post.idPost]!['curtido'] = _curtido;
       mockStateCache[widget.post.idPost]!['totalCurtidas'] = _totalCurtidas;
     });
@@ -62,16 +61,15 @@ class _PostCardState extends State<PostCard> {
       final url = Uri.parse('http://localhost:8081/api/v1/experiencias/${widget.post.idPost}/curtir');
       final response = await http.post(url);
       if (response.statusCode != 200) {
-        // Em produção, desfazemos aqui
+        // Desfaz em caso de erro no backend real
       }
     } catch (e) {
-      // Silenciado para o nosso teste mockado
+      // Mock silenciado
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Se o callback for disparado pela tela de detalhes, atualiza o nosso estado aqui
     if (widget.isDetailScreen) {
       _carregarEstado(); 
     }
@@ -108,6 +106,37 @@ class _PostCardState extends State<PostCard> {
                     ],
                   ),
                 ),
+                
+                // NOVO: Botão de opções (Apagar) só para as suas postagens (ID 999)
+                if (widget.post.idUsuario == 999)
+                  PopupMenuButton<String>(
+                    icon: const Icon(Icons.more_vert, color: Colors.grey),
+                    onSelected: (valor) {
+                      if (valor == 'apagar') {
+                        MockFeedService.removerPost(widget.post.idPost);
+                        // Se estivermos na tela de detalhes, precisamos fechar ela primeiro
+                        if (widget.isDetailScreen) {
+                          Navigator.pop(context);
+                        }
+                        // Avisa o Feed para recarregar
+                        if (widget.onPostDeletado != null) {
+                          widget.onPostDeletado!();
+                        }
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      const PopupMenuItem(
+                        value: 'apagar',
+                        child: Row(
+                          children: [
+                            Icon(Icons.delete, color: Colors.red, size: 20),
+                            SizedBox(width: 8),
+                            Text('Apagar Publicação', style: TextStyle(color: Colors.red)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
               ],
             ),
             const SizedBox(height: 12),
@@ -157,17 +186,19 @@ class _PostCardState extends State<PostCard> {
                 GestureDetector(
                   onTap: () {
                     if (!widget.isDetailScreen) {
-                      // O .then() é a mágica: ele roda assim que a tela de detalhes é fechada!
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => PostDetailScreen(post: widget.post),
                         ),
                       ).then((_) {
-                        // Força o Feed a ler o cache novamente e se redesenhar
                         setState(() {
                           _carregarEstado();
                         });
+                        // Aproveita e atualiza caso o usuário delete o post dentro da tela de detalhes
+                        if (widget.onPostDeletado != null) {
+                           widget.onPostDeletado!();
+                        }
                       });
                     }
                   },

@@ -1,7 +1,6 @@
 import '../models/feed_response_model.dart';
 
 class MockFeedService {
-  // Lista estática que funciona como nosso "banco de dados" temporário
   static final List<FeedResponseModel> _feedData = [
     FeedResponseModel(
       idPost: 1,
@@ -40,13 +39,16 @@ class MockFeedService {
   ];
 
   Future<List<FeedResponseModel>> getFeedGlobal() async {
-    // Simula o tempo de rede apenas na primeira vez
-    await Future.delayed(const Duration(milliseconds: 800));
+    await Future.delayed(const Duration(milliseconds: 500));
     return _feedData;
   }
 
-  // Método para o "remendo" de adicionar post no cache da memória
   static void adicionarNovoPost(FeedResponseModel novoPost) {
-    _feedData.insert(0, novoPost); // Insere no topo do feed
+    _feedData.insert(0, novoPost);
+  }
+
+  // NOVO: Remove do cache
+  static void removerPost(int idPost) {
+    _feedData.removeWhere((post) => post.idPost == idPost);
   }
 }

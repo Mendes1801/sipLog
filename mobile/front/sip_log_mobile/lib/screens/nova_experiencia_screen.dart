@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart'; // Import necessário
-import 'dart:io' show File; // Para lidar com arquivos (não usado diretamente na web, mas bom ter)
-import 'package:flutter/foundation.dart' show kIsWeb; // Para checar se é web
-
+import 'package:image_picker/image_picker.dart'; 
 import '../models/feed_response_model.dart';
 import '../services/mock_feed_service.dart';
 
@@ -14,23 +11,29 @@ class NovaExperienciaScreen extends StatefulWidget {
 }
 
 class _NovaExperienciaScreenState extends State<NovaExperienciaScreen> {
-  final _nomeController = TextEditingController();
   final _comentarioController = TextEditingController();
   double _nota = 5.0;
   
-  // Estado para guardar a imagem selecionada
   XFile? _imagemSelecionada;
   final ImagePicker _picker = ImagePicker();
 
-  // Função para abrir o seletor de imagens
+  // NOVO: Simulação do que viria do endpoint /api/v1/bebidas
+  final List<Map<String, dynamic>> _bebidasDisponiveis = [
+    {'id': 1, 'nome': 'Vinho Cabernet Sauvignon', 'categoria': 'Vinho Tinto'},
+    {'id': 2, 'nome': 'IPA Artesanal', 'categoria': 'Cerveja'},
+    {'id': 3, 'nome': 'Whisky Single Malt', 'categoria': 'Destilado'},
+    {'id': 4, 'nome': 'Gin Tônica', 'categoria': 'Coquetel'},
+  ];
+  
+  // Variável para armazenar a bebida selecionada
+  Map<String, dynamic>? _bebidaSelecionada;
+
   Future<void> _selecionarImagem() async {
     try {
-      // Abre a galeria (no navegador, abre o seletor de arquivos)
       final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-      
       if (image != null) {
         setState(() {
-          _imagemSelecionada = image; // Atualiza a tela com a foto nova
+          _imagemSelecionada = image; 
         });
       }
     } catch (e) {
@@ -39,28 +42,31 @@ class _NovaExperienciaScreenState extends State<NovaExperienciaScreen> {
   }
 
   void _postar() {
-    if (_nomeController.text.trim().isEmpty) return;
+    // Validação: Exige que uma bebida seja escolhida
+    if (_bebidaSelecionada == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor, selecione uma bebida!')),
+      );
+      return;
+    }
 
-    // Foto Padrão caso o usuário não selecione nenhuma
     String fotoParaOPost = 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=500&q=60';
 
     if (_imagemSelecionada != null) {
-      // Na web, o path do XFile é uma URL blob (ex: blob:http://localhost:8080/...)
-      // que o navegador consegue renderizar. Perfeito para o nosso mock visual.
       fotoParaOPost = _imagemSelecionada!.path;
     }
 
     final novoPost = FeedResponseModel(
       idPost: DateTime.now().millisecondsSinceEpoch,
-      idUsuario: 999,
+      idUsuario: 999, // Seu ID
       nomeAutor: 'Você',
-      fotoAvatarUrl: null, // Usará ícone default BT_Profile.png
+      fotoAvatarUrl: null, 
       tempoDecorrido: 'Agora mesmo',
       local: 'Adicionado recentemente',
-      fotoPostUrl: fotoParaOPost, // USA A FOTO SELECIONADA AQUI!
-      idBebida: 0, 
-      nomeBebida: _nomeController.text,
-      categoriaBebida: 'Degustação',
+      fotoPostUrl: fotoParaOPost, 
+      idBebida: _bebidaSelecionada!['id'], // USA O ID AGORA!
+      nomeBebida: _bebidaSelecionada!['nome'],
+      categoriaBebida: _bebidaSelecionada!['categoria'],
       nota: _nota,
       comentario: _comentarioController.text,
       curtidoPorMim: false,
@@ -84,9 +90,8 @@ class _NovaExperienciaScreenState extends State<NovaExperienciaScreen> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            // ÁREA DA FOTO TORNADA CLICÁVEL
             GestureDetector(
-              onTap: _selecionarImagem, // Chama a função ao clicar
+              onTap: _selecionarImagem,
               child: Container(
                 height: 200,
                 width: double.infinity,
@@ -95,11 +100,9 @@ class _NovaExperienciaScreenState extends State<NovaExperienciaScreen> {
                   borderRadius: BorderRadius.circular(15),
                   border: Border.all(color: Colors.deepPurple.withOpacity(0.3)),
                 ),
-                // Lógica visual: mostra a foto se selecionada, senão mostra o ícone de "+"
                 child: _imagemSelecionada != null
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(15),
-                        // Na web, Image.network consegue ler a blob URL do XFile.path
                         child: Image.network(_imagemSelecionada!.path, fit: BoxFit.cover, width: double.infinity,),
                       )
                     : Column(
@@ -114,12 +117,23 @@ class _NovaExperienciaScreenState extends State<NovaExperienciaScreen> {
             ),
             const SizedBox(height: 30),
             
-            TextField(
-              controller: _nomeController,
+            // NOVO: Dropdown no lugar do TextField livre
+            DropdownButtonFormField<Map<String, dynamic>>(
               decoration: const InputDecoration(
-                labelText: 'O que você está bebendo?',
+                labelText: 'Qual bebida você escolheu?',
                 border: OutlineInputBorder(),
               ),
+              items: _bebidasDisponiveis.map((bebida) {
+                return DropdownMenuItem<Map<String, dynamic>>(
+                  value: bebida,
+                  child: Text(bebida['nome']),
+                );
+              }).toList(),
+              onChanged: (valor) {
+                setState(() {
+                  _bebidaSelecionada = valor;
+                });
+              },
             ),
             const SizedBox(height: 20),
             

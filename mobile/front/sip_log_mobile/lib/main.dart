@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'screens/feed_screen.dart';
 import 'screens/nova_experiencia_screen.dart';
+import 'screens/profile_screen.dart';
 
 void main() {
   runApp(const SipLogApp());
@@ -43,7 +44,7 @@ class _TelaNavegacaoBaseState extends State<TelaNavegacaoBase> {
       case 3:
         return const Center(child: Text('Notificações', style: TextStyle(fontSize: 20)));
       case 4:
-        return const Center(child: Text('Perfil', style: TextStyle(fontSize: 20)));
+        return const ProfileScreen();
       default:
         return const SizedBox.shrink();
     }

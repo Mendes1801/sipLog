@@ -12,38 +12,48 @@ class FeedScreen extends StatefulWidget {
 
 class _FeedScreenState extends State<FeedScreen> {
   final MockFeedService _feedService = MockFeedService();
-  late Future<List<FeedResponseModel>> _feedFuture;
+  List<FeedResponseModel> _posts = [];
+  bool _carregando = true;
 
   @override
   void initState() {
     super.initState();
-    // Inicia a requisição (mesmo sendo mock) assim que a tela abre
-    _feedFuture = _feedService.getFeedGlobal();
+    _carregarFeed();
+  }
+
+  Future<void> _carregarFeed() async {
+    final posts = await _feedService.getFeedGlobal();
+    setState(() {
+      _posts = List.from(posts); // Cria uma nova lista para forçar a UI a ver a diferença
+      _carregando = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<FeedResponseModel>>(
-      future: _feedFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator()); // Efeito visual de carregamento
-        } else if (snapshot.hasError) {
-          return Center(child: Text('Erro ao carregar o feed: ${snapshot.error}'));
-        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(child: Text('Nenhuma degustação encontrada no momento.'));
-        }
+    if (_carregando) {
+      return const Center(child: CircularProgressIndicator(color: Colors.deepPurple));
+    }
 
-        // Se chegou aqui, temos dados!
-        final posts = snapshot.data!;
-        
-        return ListView.builder(
-          itemCount: posts.length,
-          itemBuilder: (context, index) {
-            return PostCard(post: posts[index]);
-          },
-        );
-      },
+    if (_posts.isEmpty) {
+      return const Center(child: Text('Nenhuma publicação encontrada.', style: TextStyle(fontSize: 16)));
+    }
+
+    return RefreshIndicator(
+      onRefresh: _carregarFeed,
+      color: Colors.deepPurple,
+      child: ListView.builder(
+        itemCount: _posts.length,
+        itemBuilder: (context, index) {
+          return PostCard(
+            post: _posts[index],
+            // NOVO: Quando o card avisar que foi deletado, recarregamos a tela
+            onPostDeletado: () {
+              _carregarFeed(); 
+            },
+          );
+        },
+      ),
     );
   }
 }
