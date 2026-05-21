@@ -2,14 +2,14 @@ services:
   keycloak:
     image: quay.io/keycloak/keycloak:24.0.0
     container_name: sip_keycloak_local
-    command: start-dev
+    command: start-dev --http-enabled=true --http-port=8080 --proxy-headers=xforwarded
     environment:
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://postgres-keycloak:5432/${KC_DB_NAME}
       KC_DB_USERNAME: ${KC_DB_USER}
       KC_DB_PASSWORD: ${KC_DB_PASSWORD}
       KC_HOSTNAME_STRICT: "false"
-      KC_HTTP_ENABLED: "true"
+    #  KC_HTTP_ENABLED: "true"
       KEYCLOAK_ADMIN: ${KC_ADMIN_USER}
       KEYCLOAK_ADMIN_PASSWORD: ${KC_ADMIN_PASSWORD}
     ports:

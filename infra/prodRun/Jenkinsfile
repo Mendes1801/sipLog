@@ -92,35 +92,29 @@ pipeline {
                     sh """
                         ssh -i \$SSH_KEY -o StrictHostKeyChecking=no ubuntu@172.31.23.135 '
                             cd /home/ubuntu/sipLog/infra/prodRun
+                            
+                            # Verifica se o container do banco de dados já existe
+                            # docker ps -a -q verifica todos os containers (rodando ou parados) pelo nome
+                            DB_EXISTS=\$(sudo docker ps -a -q -f name=sip_postgres_local)
         
-                            # 1. Função para verificar se o container está rodando
-                            is_running() {
-                                [ "\$(sudo docker inspect -f '{{.State.Running}}' \$1 2>/dev/null)" == "true" ]
-                            }
-        
-                            echo "Iniciando verificação da infraestrutura..."
-        
-                            # 2. Sobe Bancos se não estiverem rodando
-                            if ! is_running sip_postgres_local; then
-                                echo "Subindo Bancos de Dados..."
-                                sudo docker compose --env-file .env.prod -f docker-compose-bds.yml up -d
+                            if [ -z "\$DB_EXISTS" ]; then
+                                echo "Ambiente não encontrado. Iniciando provisionamento completo..."
+                                
+                                # 1. Cria a rede se não existir
+                                docker network inspect sip-network >/dev/null 2>&1 || docker network create sip-network
+                                
+                                # 2. Sobe Spring
+                                sudo docker compose --env-file .env.prod -f docker-compose-prod.yml up -d --build
+                            else
+                                echo "Infraestrutura básica detectada. Realizando deploy incremental..."
+                                
+                                # Apenas atualiza os serviços Spring, mantendo bancos e Keycloak intactos
+                                sudo docker compose --env-file .env.prod -f docker-compose-spring.yml up -d --build
                             fi
-        
-                            # 3. Sobe Keycloak se não estiver rodando
-                            if ! is_running sip_keycloak_local; then
-                                echo "Subindo Keycloak..."
-                                sudo docker compose --env-file .env.prod -f docker-compose-keycloak.yml up -d
-                                echo "Aguardando Keycloak estabilizar (30s)..."
-                                sleep 30
-                            fi
-        
-                            # 4. Deploy dos Serviços Spring (sempre faz o build/update)
-                            echo "Realizando deploy dos serviços Spring..."
-                            sudo docker compose --env-file .env.prod -f docker-compose-spring.yml up -d --build
                         '
                     """
                     
-                    // (SCP continua o mesmo para enviar os arquivos .jar)
+                    // Copia os .jar para os alvos (mantenha como estava)
                     sh """
                         scp -i \$SSH_KEY -o StrictHostKeyChecking=no core_api/apiCore-sipLog/target/*.jar ubuntu@172.31.23.135:/home/ubuntu/sipLog/core_api/apiCore-sipLog/target/
                         scp -i \$SSH_KEY -o StrictHostKeyChecking=no sipLog-BFF/target/*.jar ubuntu@172.31.23.135:/home/ubuntu/sipLog/sipLog-BFF/target/
