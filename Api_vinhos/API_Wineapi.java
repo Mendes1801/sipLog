@@ -1,5 +1,4 @@
 // WineAPI Documentation: https://wineapi.io/docs/description/introduction
-// API Key: wapi_c4bb5b3c0109db7cfe7e21aaa68bb1444ca728a02bd12b2157c798fd022c8bd1
 
 import java.net.URI;
 import java.net.URLEncoder;
@@ -12,7 +11,7 @@ import org.json.JSONObject;
 
 public class API_Wineapi {
     
-    private static final String API_KEY = "wapi_c4bb5b3c0109db7cfe7e21aaa68bb1444ca728a02bd12b2157c798fd022c8bd1";
+    private static final String API_KEY = System.getenv("API_KEY");
     private static final String BASE_URL = "https://api.wineapi.io";
     private static final HttpClient httpClient = HttpClient.newHttpClient();
 
