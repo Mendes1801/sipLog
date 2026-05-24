@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/feed_response_model.dart';
-import '../services/mock_feed_service.dart';
-import '../services/mock_user_service.dart'; // Import do nosso novo "Banco"
+import '../models/user_models.dart';
+import '../services/http_feed_service.dart';
+import '../services/http_user_service.dart';
 import 'post_detail_screen.dart';
 import 'edit_profile_screen.dart';
 
@@ -13,22 +15,40 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  final MockFeedService _feedService = MockFeedService();
+  PerfilDTO? _perfil;
   List<FeedResponseModel> _meusPosts = [];
   bool _carregando = true;
 
   @override
   void initState() {
     super.initState();
-    _carregarMeusPosts();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _carregarDados();
+    });
   }
 
-  Future<void> _carregarMeusPosts() async {
-    final todosPosts = await _feedService.getFeedGlobal();
-    setState(() {
-      _meusPosts = todosPosts.where((post) => post.idUsuario == 999).toList();
-      _carregando = false;
-    });
+  Future<void> _carregarDados() async {
+    final userService = Provider.of<HttpUserService>(context, listen: false);
+    final feedService = Provider.of<HttpFeedService>(context, listen: false);
+
+    try {
+      final perfil = await userService.getMeuPerfil();
+      final posts = await feedService.getFeedMe();
+      if (mounted) {
+        setState(() {
+          _perfil = perfil;
+          _meusPosts = posts;
+          _carregando = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _carregando = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao carregar perfil: $e')),
+        );
+      }
+    }
   }
 
   @override
@@ -36,11 +56,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return _carregando
         ? const Center(child: CircularProgressIndicator(color: Colors.deepPurple))
         : RefreshIndicator(
-            onRefresh: _carregarMeusPosts,
+            onRefresh: _carregarDados,
             color: Colors.deepPurple,
             child: CustomScrollView(
               slivers: [
-                // CABEÇALHO DO PERFIL
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.all(20.0),
@@ -49,36 +68,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         CircleAvatar(
                           radius: 50,
                           backgroundColor: Colors.grey.shade300,
-                          // LÊ A FOTO SALVA NO MOCK
-                          backgroundImage: MockUserService.fotoAvatarUrl != null
-                              ? NetworkImage(MockUserService.fotoAvatarUrl!)
+                          backgroundImage: _perfil?.usuario?.fotoAvatarUrl != null
+                              ? NetworkImage(_perfil!.usuario!.fotoAvatarUrl!)
                               : const AssetImage('assets/images/BT_Profile.png') as ImageProvider,
                         ),
                         const SizedBox(height: 15),
                         Text(
-                          MockUserService.nomeUsuario, // LÊ O NOME DO MOCK
+                          _perfil?.usuario?.nome ?? 'Usuário',
                           style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 5),
                         Text(
-                          MockUserService.bio, // LÊ A BIO DO MOCK
+                          _perfil?.usuario?.bio ?? 'Sem bio disponível.',
                           textAlign: TextAlign.center,
                           style: const TextStyle(color: Colors.grey, fontSize: 14),
                         ),
                         const SizedBox(height: 20),
                         
-                        // ESTATÍSTICAS
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            _buildEstatistica('Degustações', _meusPosts.length.toString()),
-                            _buildEstatistica('Seguidores', '12'),
-                            _buildEstatistica('Seguindo', '28'),
+                            _buildEstatistica('Degustações', (_perfil?.estatisticas?.totalDegustacoes ?? 0).toString()),
+                            _buildEstatistica('Seguidores', (_perfil?.estatisticas?.seguidores ?? 0).toString()),
+                            _buildEstatistica('Seguindo', (_perfil?.estatisticas?.seguindo ?? 0).toString()),
                           ],
                         ),
                         const SizedBox(height: 20),
                         
-                        // BOTÃO DE EDITAR PERFIL
                         SizedBox(
                           width: double.infinity,
                           child: OutlinedButton(
@@ -87,8 +103,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 context,
                                 MaterialPageRoute(builder: (context) => const EditProfileScreen()),
                               ).then((_) {
-                                // QUANDO VOLTAR DA EDIÇÃO, ATUALIZA A TELA!
-                                setState(() {});
+                                _carregarDados();
                               });
                             },
                             style: OutlinedButton.styleFrom(
@@ -105,7 +120,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
 
-                // GRADE DE PUBLICAÇÕES ESTILO INSTAGRAM
                 if (_meusPosts.isEmpty)
                   const SliverToBoxAdapter(
                     child: Padding(
@@ -125,7 +139,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       crossAxisCount: 3, 
                       crossAxisSpacing: 2,
                       mainAxisSpacing: 2,
-                      childAspectRatio: 1.0, // Força itens quadrados
+                      childAspectRatio: 1.0,
                     ),
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
@@ -137,7 +151,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               MaterialPageRoute(
                                 builder: (context) => PostDetailScreen(post: post),
                               ),
-                            ).then((_) => _carregarMeusPosts());
+                            ).then((_) => _carregarDados());
                           },
                           child: ClipRect(
                             child: Stack(

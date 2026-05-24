@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/feed_response_model.dart';
-import '../services/mock_feed_service.dart';
+import '../services/http_feed_service.dart';
 import '../widgets/post_card.dart';
 
 class FeedScreen extends StatefulWidget {
@@ -11,22 +12,35 @@ class FeedScreen extends StatefulWidget {
 }
 
 class _FeedScreenState extends State<FeedScreen> {
-  final MockFeedService _feedService = MockFeedService();
   List<FeedResponseModel> _posts = [];
   bool _carregando = true;
 
   @override
   void initState() {
     super.initState();
-    _carregarFeed();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _carregarFeed();
+    });
   }
 
   Future<void> _carregarFeed() async {
-    final posts = await _feedService.getFeedGlobal();
-    setState(() {
-      _posts = List.from(posts); // Cria uma nova lista para forçar a UI a ver a diferença
-      _carregando = false;
-    });
+    final feedService = Provider.of<HttpFeedService>(context, listen: false);
+    try {
+      final posts = await feedService.getFeedGlobal();
+      if (mounted) {
+        setState(() {
+          _posts = List.from(posts);
+          _carregando = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _carregando = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao carregar feed: $e')),
+        );
+      }
+    }
   }
 
   @override
@@ -47,7 +61,6 @@ class _FeedScreenState extends State<FeedScreen> {
         itemBuilder: (context, index) {
           return PostCard(
             post: _posts[index],
-            // NOVO: Quando o card avisar que foi deletado, recarregamos a tela
             onPostDeletado: () {
               _carregarFeed(); 
             },

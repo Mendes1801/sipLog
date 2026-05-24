@@ -1,23 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 import '../models/feed_response_model.dart';
 import '../screens/post_detail_screen.dart';
-import '../services/mock_feed_service.dart'; // Necessário para chamar o apagar
-
-final Map<int, Map<String, dynamic>> mockStateCache = {};
+import '../services/http_experiencia_service.dart';
 
 class PostCard extends StatefulWidget {
   final FeedResponseModel post;
   final bool isDetailScreen;
   final VoidCallback? onComentarioAdicionado;
-  final VoidCallback? onPostDeletado; // NOVO: Gatilho para avisar a tela mãe
+  final VoidCallback? onPostDeletado;
 
   const PostCard({
     super.key, 
     required this.post, 
     this.isDetailScreen = false,
     this.onComentarioAdicionado,
-    this.onPostDeletado, // NOVO
+    this.onPostDeletado,
   });
 
   @override
@@ -29,51 +27,61 @@ class _PostCardState extends State<PostCard> {
   late int _totalCurtidas;
   late int _totalComentarios;
 
-  void _carregarEstado() {
-    int id = widget.post.idPost;
-    if (!mockStateCache.containsKey(id)) {
-      mockStateCache[id] = {
-        'curtido': widget.post.curtidoPorMim,
-        'totalCurtidas': widget.post.totalCurtidas,
-        'totalComentarios': widget.post.totalComentarios,
-      };
-    }
-    _curtido = mockStateCache[id]!['curtido'];
-    _totalCurtidas = mockStateCache[id]!['totalCurtidas'];
-    _totalComentarios = mockStateCache[id]!['totalComentarios'];
-  }
-
   @override
   void initState() {
     super.initState();
-    _carregarEstado();
+    _curtido = widget.post.curtidoPorMim;
+    _totalCurtidas = widget.post.totalCurtidas;
+    _totalComentarios = widget.post.totalComentarios;
   }
 
   Future<void> _alternarCurtida() async {
+    final experienciaService = Provider.of<HttpExperienciaService>(context, listen: false);
+
     setState(() {
       _curtido = !_curtido;
       _totalCurtidas += _curtido ? 1 : -1;
-      mockStateCache[widget.post.idPost]!['curtido'] = _curtido;
-      mockStateCache[widget.post.idPost]!['totalCurtidas'] = _totalCurtidas;
     });
 
     try {
-      final url = Uri.parse('http://localhost:8081/api/v1/experiencias/${widget.post.idPost}/curtir');
-      final response = await http.post(url);
-      if (response.statusCode != 200) {
-        // Desfaz em caso de erro no backend real
+      await experienciaService.alternarCurtida(widget.post.idPost);
+    } catch (e) {
+      // Reverter em caso de erro
+      setState(() {
+        _curtido = !_curtido;
+        _totalCurtidas += _curtido ? 1 : -1;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao curtir: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _deletarPost() async {
+    final experienciaService = Provider.of<HttpExperienciaService>(context, listen: false);
+    try {
+      await experienciaService.deletarExperiencia(widget.post.idPost);
+      if (mounted) {
+        if (widget.isDetailScreen) {
+          Navigator.pop(context);
+        }
+        if (widget.onPostDeletado != null) {
+          widget.onPostDeletado!();
+        }
       }
     } catch (e) {
-      // Mock silenciado
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao deletar post: $e')),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (widget.isDetailScreen) {
-      _carregarEstado(); 
-    }
-
     return Card(
       margin: widget.isDetailScreen 
           ? EdgeInsets.zero 
@@ -107,21 +115,12 @@ class _PostCardState extends State<PostCard> {
                   ),
                 ),
                 
-                // NOVO: Botão de opções (Apagar) só para as suas postagens (ID 999)
-                if (widget.post.idUsuario == 999)
+                if (widget.post.idUsuario == 999) // Em um cenário real, compararíamos com o ID do usuário logado
                   PopupMenuButton<String>(
                     icon: const Icon(Icons.more_vert, color: Colors.grey),
                     onSelected: (valor) {
                       if (valor == 'apagar') {
-                        MockFeedService.removerPost(widget.post.idPost);
-                        // Se estivermos na tela de detalhes, precisamos fechar ela primeiro
-                        if (widget.isDetailScreen) {
-                          Navigator.pop(context);
-                        }
-                        // Avisa o Feed para recarregar
-                        if (widget.onPostDeletado != null) {
-                          widget.onPostDeletado!();
-                        }
+                        _deletarPost();
                       }
                     },
                     itemBuilder: (context) => [
@@ -192,10 +191,6 @@ class _PostCardState extends State<PostCard> {
                           builder: (context) => PostDetailScreen(post: widget.post),
                         ),
                       ).then((_) {
-                        setState(() {
-                          _carregarEstado();
-                        });
-                        // Aproveita e atualiza caso o usuário delete o post dentro da tela de detalhes
                         if (widget.onPostDeletado != null) {
                            widget.onPostDeletado!();
                         }

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/feed_response_model.dart';
-import '../models/comentario_model.dart';
-import '../services/mock_comentario_service.dart';
+import '../models/experiencia_models.dart';
+import '../services/http_experiencia_service.dart';
 import '../widgets/post_card.dart';
 
 class PostDetailScreen extends StatefulWidget {
@@ -14,44 +15,67 @@ class PostDetailScreen extends StatefulWidget {
 }
 
 class _PostDetailScreenState extends State<PostDetailScreen> {
-  final MockComentarioService _comentarioService = MockComentarioService();
   final TextEditingController _comentarioController = TextEditingController();
   
-  List<ComentarioModel> _comentarios = [];
+  List<ComentarioResponseDTO> _comentarios = [];
   bool _carregando = true;
   bool _enviando = false;
 
   @override
   void initState() {
     super.initState();
-    _carregarComentarios();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _carregarComentarios();
+    });
   }
 
   Future<void> _carregarComentarios() async {
-    final coments = await _comentarioService.getComentarios(widget.post.idPost);
-    setState(() {
-      _comentarios = coments;
-      _carregando = false;
-    });
+    final experienciaService = Provider.of<HttpExperienciaService>(context, listen: false);
+    try {
+      final pagina = await experienciaService.listarComentarios(widget.post.idPost);
+      if (mounted) {
+        setState(() {
+          _comentarios = pagina.content;
+          _carregando = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _carregando = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao carregar comentários: $e')),
+        );
+      }
+    }
   }
 
   Future<void> _enviarComentario() async {
     if (_comentarioController.text.trim().isEmpty) return;
     
     setState(() => _enviando = true);
-    
-    final novo = await _comentarioService.adicionarComentario(widget.post.idPost, _comentarioController.text);
-    
-    // Atualiza o cache global do remendo para a contagem de comentários subir
-    if (mockStateCache.containsKey(widget.post.idPost)) {
-       mockStateCache[widget.post.idPost]!['totalComentarios'] += 1;
-    }
+    final experienciaService = Provider.of<HttpExperienciaService>(context, listen: false);
 
-    setState(() {
-      _comentarios.insert(0, novo);
-      _comentarioController.clear();
-      _enviando = false;
-    });
+    try {
+      final novo = await experienciaService.adicionarComentario(
+        widget.post.idPost,
+        NovoComentarioDTO(texto: _comentarioController.text)
+      );
+
+      if (mounted) {
+        setState(() {
+          _comentarios.insert(0, novo);
+          _comentarioController.clear();
+          _enviando = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _enviando = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao enviar comentário: $e')),
+        );
+      }
+    }
     
     FocusScope.of(context).unfocus();
   }
@@ -70,15 +94,15 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
             child: ListView(
               children: [
                 PostCard(
-                  post: widget.post, 
+                  post: widget.post,
                   isDetailScreen: true,
                 ),
-                
+
                 const Padding(
                   padding: EdgeInsets.all(15.0),
                   child: Text('Comentários', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 ),
-                
+
                 if (_carregando)
                   const Center(child: Padding(padding: EdgeInsets.all(20.0), child: CircularProgressIndicator()))
                 else if (_comentarios.isEmpty)
@@ -86,23 +110,23 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                 else
                   ..._comentarios.map((c) => ListTile(
                     leading: CircleAvatar(
-                      backgroundImage: c.autorFoto != null 
-                        ? NetworkImage(c.autorFoto!) 
+                      backgroundImage: c.autor?.fotoAvatarUrl != null
+                        ? NetworkImage(c.autor!.fotoAvatarUrl!)
                         : const AssetImage('assets/images/BT_Profile.png') as ImageProvider,
                     ),
                     title: Row(
                       children: [
-                        Text(c.autorNome, style: const TextStyle(fontWeight: FontWeight.bold)),
+                        Text(c.autor?.nome ?? 'Anônimo', style: const TextStyle(fontWeight: FontWeight.bold)),
                         const SizedBox(width: 8),
-                        Text(c.tempoDecorrido, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                        Text(c.tempoDecorrido ?? '', style: const TextStyle(fontSize: 12, color: Colors.grey)),
                       ],
                     ),
-                    subtitle: Text(c.texto),
+                    subtitle: Text(c.texto ?? ''),
                   )),
               ],
             ),
           ),
-          
+
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.grey.shade300, blurRadius: 4)]),
@@ -120,7 +144,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  _enviando 
+                  _enviando
                     ? const CircularProgressIndicator()
                     : IconButton(
                         icon: const Icon(Icons.send, color: Colors.deepPurple),

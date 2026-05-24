@@ -1,31 +1,34 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import '../models/feed_response_model.dart';
+import 'http_api_service.dart';
 
-class HttpFeedService {
-  // Substitua pela URL do seu BFF quando for rodar no celular/emulador
-  final String baseUrl = 'http://localhost:8081/api/v1';
+class HttpFeedService extends HttpApiService {
+  HttpFeedService(super.authService);
 
   Future<List<FeedResponseModel>> getFeedGlobal({int pagina = 0}) async {
-    final url = Uri.parse('$baseUrl/feed/global?pagina=$pagina');
+    final response = await get('/feed/global', queryParameters: {'pagina': pagina.toString()});
+    final Map<String, dynamic> data = handleResponse(response);
+    final List<dynamic> contentList = data['content'];
+    return contentList.map((json) => FeedResponseModel.fromJson(json)).toList();
+  }
 
-    try {
-      final response = await http.get(url);
+  Future<List<FeedResponseModel>> getFeedMe({int pagina = 0}) async {
+    final response = await get('/feed/me', queryParameters: {'pagina': pagina.toString()});
+    final Map<String, dynamic> data = handleResponse(response);
+    final List<dynamic> contentList = data['content'];
+    return contentList.map((json) => FeedResponseModel.fromJson(json)).toList();
+  }
 
-      if (response.statusCode == 200) {
-        // O Flutter decodifica o JSON inteiro
-        final Map<String, dynamic> jsonDecoded = json.decode(utf8.decode(response.bodyBytes));
-        
-        // Pega apenas a chave "content" do seu PaginaBffDTOReciveFeedResponseDTO
-        final List<dynamic> contentList = jsonDecoded['content'];
-        
-        // Transforma a lista de mapas JSON em objetos Dart
-        return contentList.map((json) => FeedResponseModel.fromJson(json)).toList();
-      } else {
-        throw Exception('Erro no backend: Código ${response.statusCode}');
-      }
-    } catch (e) {
-      throw Exception('Falha ao conectar no servidor: $e');
-    }
+  Future<List<FeedResponseModel>> getFeedAmigos({int pagina = 0}) async {
+    final response = await get('/feed/amigos', queryParameters: {'pagina': pagina.toString()});
+    final Map<String, dynamic> data = handleResponse(response);
+    final List<dynamic> contentList = data['content'];
+    return contentList.map((json) => FeedResponseModel.fromJson(json)).toList();
+  }
+
+  Future<List<FeedResponseModel>> getFeedDeUsuario(int idUsuario, {int pagina = 0}) async {
+    final response = await get('/feed/usuarios/$idUsuario', queryParameters: {'pagina': pagina.toString()});
+    final Map<String, dynamic> data = handleResponse(response);
+    final List<dynamic> contentList = data['content'];
+    return contentList.map((json) => FeedResponseModel.fromJson(json)).toList();
   }
 }

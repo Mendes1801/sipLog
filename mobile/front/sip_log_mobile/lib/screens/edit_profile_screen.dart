@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import '../services/mock_user_service.dart';
+import 'package:provider/provider.dart';
+import '../models/user_models.dart';
+import '../services/http_user_service.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -10,27 +12,47 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  // Inicializa os campos com o que está salvo no mock
-  late final TextEditingController _nomeController;
-  late final TextEditingController _bioController;
+  final _nomeController = TextEditingController();
+  final _bioController = TextEditingController();
   final _senhaController = TextEditingController();
 
   String? _imagemPath;
   final ImagePicker _picker = ImagePicker();
+  bool _carregando = true;
 
   @override
   void initState() {
     super.initState();
-    _nomeController = TextEditingController(text: MockUserService.nomeUsuario);
-    _bioController = TextEditingController(text: MockUserService.bio);
-    _imagemPath = MockUserService.fotoAvatarUrl;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _carregarPerfil();
+    });
+  }
+
+  Future<void> _carregarPerfil() async {
+    final userService = Provider.of<HttpUserService>(context, listen: false);
+    try {
+      final perfil = await userService.getMeuPerfil();
+      if (mounted) {
+        setState(() {
+          _nomeController.text = perfil.usuario?.nome ?? '';
+          _bioController.text = perfil.usuario?.bio ?? '';
+          _imagemPath = perfil.usuario?.fotoAvatarUrl;
+          _carregando = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _carregando = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao carregar perfil: $e')),
+        );
+      }
+    }
   }
 
   Future<void> _selecionarImagem() async {
     try {
-      // Pega a imagem direto da galeria e já exibe, sem passar pelo cropper
       final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-      
       if (image != null) {
         setState(() {
           _imagemPath = image.path;
@@ -41,18 +63,32 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
-  void _salvarPerfil() {
+  Future<void> _salvarPerfil() async {
     if (_nomeController.text.trim().isEmpty) return;
 
-    // Salva no nosso "banco" temporário
-    MockUserService.nomeUsuario = _nomeController.text;
-    MockUserService.bio = _bioController.text;
-    MockUserService.fotoAvatarUrl = _imagemPath;
+    setState(() => _carregando = true);
+    final userService = Provider.of<HttpUserService>(context, listen: false);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Perfil atualizado com sucesso!'), backgroundColor: Colors.green),
-    );
-    Navigator.pop(context); // Volta avisando a tela anterior
+    try {
+      await userService.atualizarMeuPerfil(UsuarioUpdateDTO(
+        nome: _nomeController.text,
+        bio: _bioController.text,
+        fotoAvatarUrl: _imagemPath,
+      ));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Perfil atualizado com sucesso!'), backgroundColor: Colors.green),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _carregando = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao salvar perfil: $e')),
+        );
+      }
+    }
   }
 
   void _mostrarDialogExclusao() {
@@ -106,7 +142,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         backgroundColor: Colors.deepPurple,
         foregroundColor: Colors.white,
       ),
-      body: SingleChildScrollView(
+      body: _carregando
+        ? const Center(child: CircularProgressIndicator())
+        : SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [

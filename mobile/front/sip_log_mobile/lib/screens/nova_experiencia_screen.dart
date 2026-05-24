@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart'; 
-import '../models/feed_response_model.dart';
-import '../services/mock_feed_service.dart';
+import 'package:provider/provider.dart';
+import '../models/bebida_models.dart';
+import '../models/experiencia_models.dart';
+import '../services/http_bebida_service.dart';
+import '../services/http_experiencia_service.dart';
 
 class NovaExperienciaScreen extends StatefulWidget {
   const NovaExperienciaScreen({super.key});
@@ -17,16 +20,37 @@ class _NovaExperienciaScreenState extends State<NovaExperienciaScreen> {
   XFile? _imagemSelecionada;
   final ImagePicker _picker = ImagePicker();
 
-  // NOVO: Simulação do que viria do endpoint /api/v1/bebidas
-  final List<Map<String, dynamic>> _bebidasDisponiveis = [
-    {'id': 1, 'nome': 'Vinho Cabernet Sauvignon', 'categoria': 'Vinho Tinto'},
-    {'id': 2, 'nome': 'IPA Artesanal', 'categoria': 'Cerveja'},
-    {'id': 3, 'nome': 'Whisky Single Malt', 'categoria': 'Destilado'},
-    {'id': 4, 'nome': 'Gin Tônica', 'categoria': 'Coquetel'},
-  ];
-  
-  // Variável para armazenar a bebida selecionada
-  Map<String, dynamic>? _bebidaSelecionada;
+  List<BebidaResumoDTO> _bebidasDisponiveis = [];
+  BebidaResumoDTO? _bebidaSelecionada;
+  bool _carregandoBebidas = true;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _carregarBebidas();
+    });
+  }
+
+  Future<void> _carregarBebidas() async {
+    final bebidaService = Provider.of<HttpBebidaService>(context, listen: false);
+    try {
+      final bebidas = await bebidaService.buscarBebidas("");
+      if (mounted) {
+        setState(() {
+          _bebidasDisponiveis = bebidas;
+          _carregandoBebidas = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _carregandoBebidas = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao carregar bebidas: $e')),
+        );
+      }
+    }
+  }
 
   Future<void> _selecionarImagem() async {
     try {
@@ -41,8 +65,7 @@ class _NovaExperienciaScreenState extends State<NovaExperienciaScreen> {
     }
   }
 
-  void _postar() {
-    // Validação: Exige que uma bebida seja escolhida
+  Future<void> _postar() async {
     if (_bebidaSelecionada == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Por favor, selecione uma bebida!')),
@@ -50,32 +73,34 @@ class _NovaExperienciaScreenState extends State<NovaExperienciaScreen> {
       return;
     }
 
-    String fotoParaOPost = 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=500&q=60';
-
-    if (_imagemSelecionada != null) {
-      fotoParaOPost = _imagemSelecionada!.path;
+    if (_imagemSelecionada == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Por favor, selecione uma foto!')),
+        );
+        return;
     }
 
-    final novoPost = FeedResponseModel(
-      idPost: DateTime.now().millisecondsSinceEpoch,
-      idUsuario: 999, // Seu ID
-      nomeAutor: 'Você',
-      fotoAvatarUrl: null, 
-      tempoDecorrido: 'Agora mesmo',
-      local: 'Adicionado recentemente',
-      fotoPostUrl: fotoParaOPost, 
-      idBebida: _bebidaSelecionada!['id'], // USA O ID AGORA!
-      nomeBebida: _bebidaSelecionada!['nome'],
-      categoriaBebida: _bebidaSelecionada!['categoria'],
-      nota: _nota,
-      comentario: _comentarioController.text,
-      curtidoPorMim: false,
-      totalCurtidas: 0,
-      totalComentarios: 0,
-    );
+    final experienciaService = Provider.of<HttpExperienciaService>(context, listen: false);
 
-    MockFeedService.adicionarNovoPost(novoPost);
-    Navigator.pop(context, true);
+    try {
+      await experienciaService.registrarNovaExperiencia(NovaExperienciaDTO(
+        idBebida: _bebidaSelecionada!.idBebida!,
+        nota: _nota,
+        comentario: _comentarioController.text,
+        visibilidade: 'PUBLICO',
+        fotoPostUrl: _imagemSelecionada!.path,
+        localizacao: 'Minha Localização',
+      ));
+      if (mounted) {
+        Navigator.pop(context, true);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao publicar: $e')),
+        );
+      }
+    }
   }
 
   @override
@@ -116,17 +141,18 @@ class _NovaExperienciaScreenState extends State<NovaExperienciaScreen> {
               ),
             ),
             const SizedBox(height: 30),
-            
-            // NOVO: Dropdown no lugar do TextField livre
-            DropdownButtonFormField<Map<String, dynamic>>(
+
+            _carregandoBebidas
+              ? const CircularProgressIndicator()
+              : DropdownButtonFormField<BebidaResumoDTO>(
               decoration: const InputDecoration(
                 labelText: 'Qual bebida você escolheu?',
                 border: OutlineInputBorder(),
               ),
               items: _bebidasDisponiveis.map((bebida) {
-                return DropdownMenuItem<Map<String, dynamic>>(
+                return DropdownMenuItem<BebidaResumoDTO>(
                   value: bebida,
-                  child: Text(bebida['nome']),
+                  child: Text(bebida.nome ?? 'Sem nome'),
                 );
               }).toList(),
               onChanged: (valor) {
@@ -136,18 +162,18 @@ class _NovaExperienciaScreenState extends State<NovaExperienciaScreen> {
               },
             ),
             const SizedBox(height: 20),
-            
+
             const Text('Sua Nota:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             Slider(
               value: _nota,
-              min: 1,
+              min: 0,
               max: 5,
-              divisions: 8, 
+              divisions: 10,
               label: _nota.toStringAsFixed(1),
               onChanged: (v) => setState(() => _nota = v),
               activeColor: Colors.amber,
             ),
-            
+
             TextField(
               controller: _comentarioController,
               maxLines: 3,
@@ -157,7 +183,7 @@ class _NovaExperienciaScreenState extends State<NovaExperienciaScreen> {
               ),
             ),
             const SizedBox(height: 30),
-            
+
             SizedBox(
               width: double.infinity,
               height: 50,
