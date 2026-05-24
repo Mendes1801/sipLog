@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/feed_response_model.dart';
 import '../screens/post_detail_screen.dart';
 import '../screens/user_profile_screen.dart';
+import '../services/http_user_service.dart';
 import '../services/http_experiencia_service.dart';
 
 class PostCard extends StatefulWidget {
@@ -28,12 +29,29 @@ class _PostCardState extends State<PostCard> {
   late int _totalCurtidas;
   late int _totalComentarios;
 
+  int? _meuId;
+
   @override
   void initState() {
     super.initState();
     _curtido = widget.post.curtidoPorMim;
     _totalCurtidas = widget.post.totalCurtidas;
     _totalComentarios = widget.post.totalComentarios;
+    _carregarMeuId();
+  }
+
+  Future<void> _carregarMeuId() async {
+    try {
+      final userService = Provider.of<HttpUserService>(context, listen: false);
+      final meuPerfil = await userService.getMeuPerfil();
+      if (mounted) {
+        setState(() {
+          _meuId = meuPerfil.usuario?.idUsuario;
+        });
+      }
+    } catch (e) {
+      debugPrint('Erro ao carregar ID do usuário logado: $e');
+    }
   }
 
   Future<void> _alternarCurtida() async {
@@ -128,7 +146,7 @@ class _PostCardState extends State<PostCard> {
                     ),
                   ),
                   
-                  if (widget.post.idUsuario == 999) // Em um cenário real, compararíamos com o ID do usuário logado
+                  if (widget.post.idUsuario == _meuId)
                     PopupMenuButton<String>(
                       icon: const Icon(Icons.more_vert, color: Colors.grey),
                       onSelected: (valor) {

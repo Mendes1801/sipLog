@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'screens/busca_usuarios_screen.dart';
 import 'screens/feed_screen.dart';
 import 'screens/nova_experiencia_screen.dart';
+import 'screens/notificacao_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/login_screen.dart';
 import 'services/auth_service.dart';
@@ -94,7 +95,7 @@ class _TelaNavegacaoBaseState extends State<TelaNavegacaoBase> {
       case 1:
         return const BuscaUsuariosScreen();
       case 3:
-        return const Center(child: Text('Notificações', style: TextStyle(fontSize: 20)));
+        return const NotificacaoScreen();
       case 4:
         return const ProfileScreen();
       default:

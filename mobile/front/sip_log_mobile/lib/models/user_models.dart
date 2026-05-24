@@ -53,13 +53,15 @@ class EstatisticasDTO {
 class PerfilDTO {
   final UsuarioPerfilDTO? usuario;
   final EstatisticasDTO? estatisticas;
+  final bool? seguindoPorMim;
 
-  PerfilDTO({this.usuario, this.estatisticas});
+  PerfilDTO({this.usuario, this.estatisticas, this.seguindoPorMim});
 
   factory PerfilDTO.fromJson(Map<String, dynamic> json) {
     return PerfilDTO(
       usuario: json['usuario'] != null ? UsuarioPerfilDTO.fromJson(json['usuario']) : null,
       estatisticas: json['estatisticas'] != null ? EstatisticasDTO.fromJson(json['estatisticas']) : null,
+      seguindoPorMim: json['seguindoPorMim'],
     );
   }
 }

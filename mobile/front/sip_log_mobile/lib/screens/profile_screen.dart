@@ -6,7 +6,7 @@ import '../services/http_feed_service.dart';
 import '../services/http_user_service.dart';
 import 'post_detail_screen.dart';
 import 'edit_profile_screen.dart';
-import 'seguindo_screen.dart';
+import 'user_list_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -90,16 +90,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
                             _buildEstatistica('Degustações', (_perfil?.estatisticas?.totalDegustacoes ?? 0).toString()),
-                            _buildEstatistica('Seguidores', (_perfil?.estatisticas?.seguidores ?? 0).toString()),
                             GestureDetector(
                               onTap: () {
                                 if (_perfil?.usuario?.idUsuario != null) {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => SeguindoScreen(
+                                      builder: (context) => UserListScreen(
                                         idUsuario: _perfil!.usuario!.idUsuario!,
                                         nomeUsuario: _perfil!.usuario!.nome ?? 'Usuário',
+                                        modo: UserListMode.seguidores,
+                                      ),
+                                    ),
+                                  );
+                                }
+                              },
+                              child: _buildEstatistica('Seguidores', (_perfil?.estatisticas?.seguidores ?? 0).toString()),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                if (_perfil?.usuario?.idUsuario != null) {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => UserListScreen(
+                                        idUsuario: _perfil!.usuario!.idUsuario!,
+                                        nomeUsuario: _perfil!.usuario!.nome ?? 'Usuário',
+                                        modo: UserListMode.seguindo,
                                       ),
                                     ),
                                   );

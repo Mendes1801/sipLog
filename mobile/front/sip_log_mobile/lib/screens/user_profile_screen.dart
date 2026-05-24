@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/feed_response_model.dart';
 import '../models/user_models.dart';
-import '../services/http_feed_service.dart';
 import '../services/http_user_service.dart';
+import '../services/http_feed_service.dart';
 import 'post_detail_screen.dart';
+import 'user_list_screen.dart';
 
 class UserProfileScreen extends StatefulWidget {
   final int idUsuario;
@@ -20,6 +21,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   PerfilDTO? _perfil;
   List<FeedResponseModel> _posts = [];
   bool _carregando = true;
+  bool _estaSeguindo = false;
 
   @override
   void initState() {
@@ -32,16 +34,21 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     final feedService = Provider.of<HttpFeedService>(context, listen: false);
 
     try {
+      debugPrint('🔍 Buscando perfil do usuário: ${widget.idUsuario}');
       final perfil = await userService.getPerfilUsuario(widget.idUsuario);
+      debugPrint('✅ Perfil recebido: ${perfil.usuario?.nome}');
       final posts = await feedService.getFeedDeUsuario(widget.idUsuario);
+      
       if (mounted) {
         setState(() {
           _perfil = perfil;
           _posts = posts;
+          _estaSeguindo = perfil.seguindoPorMim ?? false;
           _carregando = false;
         });
       }
     } catch (e) {
+      debugPrint('❌ Erro ao carregar perfil: $e');
       if (mounted) {
         setState(() => _carregando = false);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -53,10 +60,15 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   Future<void> _alternarSeguir() async {
     final userService = Provider.of<HttpUserService>(context, listen: false);
+    
+    // Feedback imediato
+    setState(() => _estaSeguindo = !_estaSeguindo);
+    
     try {
       await userService.alternarSeguir(widget.idUsuario);
-      _carregarDados(); // Recarrega para atualizar contador de seguidores
     } catch (e) {
+      // Reverte se falhar
+      setState(() => _estaSeguindo = !_estaSeguindo);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Erro ao processar: $e')),
@@ -109,25 +121,63 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
                               _buildEstatistica('Degustações', (_perfil?.estatisticas?.totalDegustacoes ?? 0).toString()),
-                              _buildEstatistica('Seguidores', (_perfil?.estatisticas?.seguidores ?? 0).toString()),
-                              _buildEstatistica('Seguindo', (_perfil?.estatisticas?.seguindo ?? 0).toString()),
+                              GestureDetector(
+                                onTap: () {
+                                  if (_perfil?.usuario?.idUsuario != null) {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => UserListScreen(
+                                          idUsuario: _perfil!.usuario!.idUsuario!,
+                                          nomeUsuario: _perfil!.usuario!.nome ?? 'Usuário',
+                                          modo: UserListMode.seguidores,
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                },
+                                child: _buildEstatistica('Seguidores', (_perfil?.estatisticas?.seguidores ?? 0).toString()),
+                              ),
+                              GestureDetector(
+                                onTap: () {
+                                  if (_perfil?.usuario?.idUsuario != null) {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => UserListScreen(
+                                          idUsuario: _perfil!.usuario!.idUsuario!,
+                                          nomeUsuario: _perfil!.usuario!.nome ?? 'Usuário',
+                                          modo: UserListMode.seguindo,
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                },
+                                child: _buildEstatistica('Seguindo', (_perfil?.estatisticas?.seguindo ?? 0).toString()),
+                              ),
                             ],
                           ),
                           const SizedBox(height: 20),
                           
                           SizedBox(
                             width: double.infinity,
-                            child: ElevatedButton(
-                              onPressed: _alternarSeguir,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.deepPurple,
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            child: AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 300),
+                              child: ElevatedButton(
+                                key: ValueKey(_estaSeguindo),
+                                onPressed: _alternarSeguir,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: _estaSeguindo ? Colors.white : Colors.deepPurple,
+                                  foregroundColor: _estaSeguindo ? Colors.deepPurple : Colors.white,
+                                  side: _estaSeguindo ? const BorderSide(color: Colors.deepPurple) : null,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                ),
+                                child: Text(_estaSeguindo ? 'Deixar de Seguir' : 'Seguir'),
                               ),
-                              child: const Text('Seguir / Parar de Seguir'),
                             ),
                           ),
                           const SizedBox(height: 20),
+
                           const Divider(height: 1),
                         ],
                       ),

@@ -9,12 +9,15 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.dto.dtoGet.PerfilDTO;
+import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.dto.dtoGet.UsuarioResumoDTO;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.dto.dtoPost.UsuarioSyncDTO;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.dto.dtoPut.UsuarioUpdateDTO;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Seguidor;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.TipoNotificacao;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Usuario;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.event.NotificacaoEvent;
+import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.exception.RecursoNaoEncontradoException;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.repository.ExperienciaRepository;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.repository.SeguidorRepository;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.repository.UsuarioRepository;
@@ -137,6 +140,12 @@ public class UsuarioCoreService {
         
         // Convertemos a página de vínculos (Seguidor) para uma página de perfis reais (Usuario)
         return relacoes.map(Seguidor::getSeguido);
+    }
+
+    // Método de busca simples por ID
+    public Usuario buscarUsuarioPorId(Long id) {
+        return usuarioRepository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado com o ID: " + id));
     }
 
 

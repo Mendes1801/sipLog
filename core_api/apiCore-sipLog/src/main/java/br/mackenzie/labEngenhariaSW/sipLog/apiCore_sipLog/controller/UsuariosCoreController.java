@@ -122,7 +122,7 @@ public class UsuariosCoreController {
             @PathVariable Long idAlvo, 
             @AuthenticationPrincipal Jwt principal) {
 
-        Usuario usuario = usuarioService.getUsuarioPerfil(principal.getSubject());
+        Usuario usuario = usuarioService.buscarUsuarioPorId(idAlvo);
                 
         long totalSips = usuarioService.contarTotalSips(usuario.getId());
         double notaMediaGlobal = usuarioService.findNotaMediaByUsuarioId(usuario.getId());

@@ -1,8 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../models/user_models.dart';
 import '../services/http_user_service.dart';
+import '../services/http_api_service.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -16,7 +18,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final _bioController = TextEditingController();
   final _senhaController = TextEditingController();
 
-  String? _imagemPath;
+  String? _imagemPath; // Caminho local para nova imagem ou URL para imagem existente
+  bool _isLocalImage = false;
   final ImagePicker _picker = ImagePicker();
   bool _carregando = true;
 
@@ -37,6 +40,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           _nomeController.text = perfil.usuario?.nome ?? '';
           _bioController.text = perfil.usuario?.bio ?? '';
           _imagemPath = perfil.usuario?.fotoAvatarUrl;
+          _isLocalImage = false;
           _carregando = false;
         });
       }
@@ -56,6 +60,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       if (image != null) {
         setState(() {
           _imagemPath = image.path;
+          _isLocalImage = true;
         });
       }
     } catch (e) {
@@ -68,12 +73,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     setState(() => _carregando = true);
     final userService = Provider.of<HttpUserService>(context, listen: false);
+    final apiService = Provider.of<HttpUserService>(context, listen: false); // HttpUserService herda de HttpApiService
 
     try {
+      String? finalAvatarUrl = _isLocalImage ? null : _imagemPath;
+
+      if (_isLocalImage && _imagemPath != null) {
+        debugPrint('Fazendo upload do novo avatar...');
+        finalAvatarUrl = await apiService.upload(_imagemPath!);
+        debugPrint('Upload do avatar concluído: $finalAvatarUrl');
+      }
+
       await userService.atualizarMeuPerfil(UsuarioUpdateDTO(
         nome: _nomeController.text,
         bio: _bioController.text,
-        fotoAvatarUrl: _imagemPath,
+        fotoAvatarUrl: finalAvatarUrl,
       ));
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -155,8 +169,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   CircleAvatar(
                     radius: 60,
                     backgroundColor: Colors.grey.shade200,
-                    backgroundImage: _imagemPath != null 
-                        ? NetworkImage(_imagemPath!) 
+                    backgroundImage: _imagemPath != null && _imagemPath!.isNotEmpty
+                        ? (_isLocalImage 
+                            ? FileImage(File(_imagemPath!)) 
+                            : NetworkImage(_imagemPath!) as ImageProvider)
                         : const AssetImage('assets/images/BT_Profile.png') as ImageProvider,
                   ),
                   Positioned(
