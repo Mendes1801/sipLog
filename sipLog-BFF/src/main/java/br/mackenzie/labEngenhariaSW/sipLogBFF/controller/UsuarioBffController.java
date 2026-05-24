@@ -93,7 +93,7 @@ public class UsuarioBffController {
             @RequestParam("q") String termo,
             @RequestParam(defaultValue = "0") int pagina) {
         
-        PaginaBffDTORecive<UsuarioResumoDTO> resultado = usuarioBffService.buscarUsuariosPorNome(termo, pagina);
+        PaginaBffDTORecive<UsuarioResumoDTO> resultado = usuarioService.buscarUsuariosPorNome(termo, pagina);
         return ResponseEntity.ok(resultado);
     }
 }
