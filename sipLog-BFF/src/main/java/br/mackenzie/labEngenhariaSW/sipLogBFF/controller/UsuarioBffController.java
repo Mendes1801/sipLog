@@ -87,4 +87,13 @@ public class UsuarioBffController {
         usuarioService.alternarSeguirUsuario(principal.getSubject(), idAlvo);
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/buscar")
+    public ResponseEntity<PaginaBffDTORecive<UsuarioResumoDTO>> buscarUsuarios(
+            @RequestParam("q") String termo,
+            @RequestParam(defaultValue = "0") int pagina) {
+        
+        PaginaBffDTORecive<UsuarioResumoDTO> resultado = usuarioBffService.buscarUsuariosPorNome(termo, pagina);
+        return ResponseEntity.ok(resultado);
+    }
 }

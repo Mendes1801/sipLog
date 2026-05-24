@@ -124,7 +124,10 @@ public class UsuarioCoreService {
         return seguidorRepository.findBySeguidoId(idUsuario, paginacao); 
     }
 
-
+    public Page<Usuario> buscarUsuariosPorNome(String nome, int pagina) {
+        Pageable paginacao = PageRequest.of(pagina, 20); // Traz 20 registros por vez
+        return usuarioRepository.findByNomeContainingIgnoreCase(nome, paginacao);
+    }
         //============================= Axiliares para o Controller =============================
 
         //Conta total de seguidores

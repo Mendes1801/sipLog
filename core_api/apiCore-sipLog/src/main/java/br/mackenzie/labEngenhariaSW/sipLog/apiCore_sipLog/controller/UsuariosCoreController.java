@@ -176,5 +176,22 @@ public class UsuariosCoreController {
         return ResponseEntity.ok(paginaDeDtos);
     }
 
+    @GetMapping("/buscar")
+    public ResponseEntity<Page<UsuarioResumoDTO>> buscarUsuarios(
+            @RequestParam String q,
+            @RequestParam(defaultValue = "0") int pagina) {
+        
+        Page<Usuario> usuarios = usuarioService.buscarUsuariosPorNome(q, pagina);
+        
+        // Mapeia as entidades para o DTO de resumo
+        Page<UsuarioResumoDTO> dtos = usuarios.map(u -> new UsuarioResumoDTO(
+                u.getId(),
+                u.getNome(),
+                u.getFotoAvatarUrl()
+        ));
+        
+        return ResponseEntity.ok(dtos);
+    }
+
 
 }
