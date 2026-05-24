@@ -7,6 +7,8 @@ import java.time.LocalDateTime;
 
 import org.hibernate.annotations.Formula;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+
 
 @Entity
 @Table(name = "tb_experiencia")
@@ -14,7 +16,31 @@ import org.hibernate.annotations.Formula;
 public class Experiencia {
 
     public enum Visibilidade {
-    PUBLICA, AMIGOS, PRIVADA
+        PUBLICA,
+        AMIGOS,
+        PRIVADA;
+
+        @JsonCreator
+        public static Visibilidade fromString(String value) {
+            if (value == null) return null;
+            
+            String normalizado = value.trim().toUpperCase();
+            
+            // Mapeamento resiliente para evitar quebras por gênero gramatical ou digitação
+            if ("PUBLICA".equals(normalizado) || "PUBLICO".equals(normalizado)) {
+                return PUBLICA;
+            }
+            if ("AMIGOS".equals(normalizado) || "AMIGAS".equals(normalizado)) {
+                return AMIGOS;
+            }
+            if ("PRIVADA".equals(normalizado) || "PRIVADO".equals(normalizado)) {
+                return PRIVADA;
+            }
+            
+            // Mensagem limpa indicando quais opções estão configuradas no ecossistema
+            throw new IllegalArgumentException("Visibilidade inválida: " + value + 
+                ". Valores aceitos: PUBLICA, AMIGOS, PRIVADA");
+        }
     }
 
     @Id
