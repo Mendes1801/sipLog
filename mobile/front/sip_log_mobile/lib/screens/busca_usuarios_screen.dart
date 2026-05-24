@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'user_profile_screen.dart';
 import '../models/user_models.dart';
 import '../services/http_user_service.dart';
 
@@ -119,7 +120,15 @@ class _BuscaUsuariosScreenState extends State<BuscaUsuariosScreen> {
                             child: const Text('Seguir'),
                           ),
                           onTap: () {
-                            // Poderíamos navegar para o perfil do usuário aqui
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => UserProfileScreen(
+                                  idUsuario: usuario.id!,
+                                  nomeUsuario: usuario.nome,
+                                ),
+                              ),
+                            );
                           },
                         );
                       },

@@ -18,6 +18,7 @@ class NovaExperienciaScreen extends StatefulWidget {
 class _NovaExperienciaScreenState extends State<NovaExperienciaScreen> {
   final _comentarioController = TextEditingController();
   double _nota = 5.0;
+  String _visibilidade = 'PUBLICA';
   
   XFile? _imagemSelecionada;
   final ImagePicker _picker = ImagePicker();
@@ -100,7 +101,7 @@ class _NovaExperienciaScreenState extends State<NovaExperienciaScreen> {
         idBebida: _bebidaSelecionada!.idBebida!,
         nota: _nota,
         comentario: _comentarioController.text,
-        visibilidade: 'PUBLICO',
+        visibilidade: _visibilidade,
         fotoPostUrl: urlFoto,
         localizacao: 'Minha Localização',
       ));
@@ -222,6 +223,24 @@ class _NovaExperienciaScreenState extends State<NovaExperienciaScreen> {
                 labelText: 'Comentário (opcional)',
                 border: OutlineInputBorder(),
               ),
+            ),
+            const SizedBox(height: 20),
+
+            DropdownButtonFormField<String>(
+              decoration: const InputDecoration(
+                labelText: 'Quem pode ver?',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.visibility),
+              ),
+              value: _visibilidade,
+              items: const [
+                DropdownMenuItem(value: 'PUBLICA', child: Text('Pública (Todos)')),
+                DropdownMenuItem(value: 'AMIGOS', child: Text('Amigos')),
+                DropdownMenuItem(value: 'PRIVADA', child: Text('Privada (Só eu)')),
+              ],
+              onChanged: (v) {
+                if (v != null) setState(() => _visibilidade = v);
+              },
             ),
             const SizedBox(height: 30),
 

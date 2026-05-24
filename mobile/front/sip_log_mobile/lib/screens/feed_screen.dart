@@ -29,7 +29,7 @@ class _FeedScreenState extends State<FeedScreen> {
       final posts = await feedService.getFeedGlobal();
       if (mounted) {
         setState(() {
-          _posts = List.from(posts);
+          _posts = posts;
           _carregando = false;
         });
       }

@@ -91,6 +91,26 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
           _comentarios.insert(0, novo);
           _comentarioController.clear();
           _enviando = false;
+          // Atualiza o contador de comentários no post que está sendo exibido
+          if (_postCompleto != null) {
+            _postCompleto = FeedResponseModel(
+              idPost: _postCompleto!.idPost,
+              idUsuario: _postCompleto!.idUsuario,
+              nomeAutor: _postCompleto!.nomeAutor,
+              fotoAvatarUrl: _postCompleto!.fotoAvatarUrl,
+              tempoDecorrido: _postCompleto!.tempoDecorrido,
+              local: _postCompleto!.local,
+              fotoPostUrl: _postCompleto!.fotoPostUrl,
+              idBebida: _postCompleto!.idBebida,
+              nomeBebida: _postCompleto!.nomeBebida,
+              categoriaBebida: _postCompleto!.categoriaBebida,
+              nota: _postCompleto!.nota,
+              comentario: _postCompleto!.comentario,
+              curtidoPorMim: _postCompleto!.curtidoPorMim,
+              totalCurtidas: _postCompleto!.totalCurtidas,
+              totalComentarios: _postCompleto!.totalComentarios + 1,
+            );
+          }
         });
       }
     } catch (e) {

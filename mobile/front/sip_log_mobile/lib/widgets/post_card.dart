@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/feed_response_model.dart';
 import '../screens/post_detail_screen.dart';
+import '../screens/user_profile_screen.dart';
 import '../services/http_experiencia_service.dart';
 
 class PostCard extends StatefulWidget {
@@ -95,48 +96,61 @@ class _PostCardState extends State<PostCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                CircleAvatar(
-                  backgroundImage: widget.post.fotoAvatarUrl != null
-                      ? NetworkImage(widget.post.fotoAvatarUrl!)
-                      : const AssetImage('assets/images/BT_Profile.png') as ImageProvider,
-                  radius: 22,
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(widget.post.nomeAutor, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                      Text('${widget.post.local ?? "Desconhecido"} • ${widget.post.tempoDecorrido}', 
-                           style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                    ],
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => UserProfileScreen(
+                      idUsuario: widget.post.idUsuario,
+                      nomeUsuario: widget.post.nomeAutor,
+                    ),
                   ),
-                ),
-                
-                if (widget.post.idUsuario == 999) // Em um cenário real, compararíamos com o ID do usuário logado
-                  PopupMenuButton<String>(
-                    icon: const Icon(Icons.more_vert, color: Colors.grey),
-                    onSelected: (valor) {
-                      if (valor == 'apagar') {
-                        _deletarPost();
-                      }
-                    },
-                    itemBuilder: (context) => [
-                      const PopupMenuItem(
-                        value: 'apagar',
-                        child: Row(
-                          children: [
-                            Icon(Icons.delete, color: Colors.red, size: 20),
-                            SizedBox(width: 8),
-                            Text('Apagar Publicação', style: TextStyle(color: Colors.red)),
-                          ],
+                );
+              },
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    backgroundImage: widget.post.fotoAvatarUrl != null
+                        ? NetworkImage(widget.post.fotoAvatarUrl!)
+                        : const AssetImage('assets/images/BT_Profile.png') as ImageProvider,
+                    radius: 22,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(widget.post.nomeAutor, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        Text('${widget.post.local ?? "Desconhecido"} • ${widget.post.tempoDecorrido}', 
+                             style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                      ],
+                    ),
+                  ),
+                  
+                  if (widget.post.idUsuario == 999) // Em um cenário real, compararíamos com o ID do usuário logado
+                    PopupMenuButton<String>(
+                      icon: const Icon(Icons.more_vert, color: Colors.grey),
+                      onSelected: (valor) {
+                        if (valor == 'apagar') {
+                          _deletarPost();
+                        }
+                      },
+                      itemBuilder: (context) => [
+                        const PopupMenuItem(
+                          value: 'apagar',
+                          child: Row(
+                            children: [
+                              Icon(Icons.delete, color: Colors.red, size: 20),
+                              SizedBox(width: 8),
+                              Text('Apagar Publicação', style: TextStyle(color: Colors.red)),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-              ],
+                      ],
+                    ),
+                ],
+              ),
             ),
             const SizedBox(height: 12),
             
