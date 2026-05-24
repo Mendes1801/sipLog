@@ -14,7 +14,6 @@ import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.ComentarioResponseDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.NovaExperienciaDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.NovoComentarioDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.UsuarioResumoDTO;
-import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.recive.FeedItemDTORecive;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.recive.PaginaBffDTORecive;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.response.RegistroExperienciaDTO;
 

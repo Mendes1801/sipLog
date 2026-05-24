@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.ComentarioResponseDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.NovaExperienciaDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.NovoComentarioDTO;
-import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.recive.FeedItemDTORecive;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.recive.PaginaBffDTORecive;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.response.RegistroExperienciaDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.service.ExperienciaBffService;
