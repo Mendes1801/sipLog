@@ -11,6 +11,7 @@ import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Experiencia;
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Experiencia.Visibilidade;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ExperienciaRepository extends JpaRepository<Experiencia, Long> {
     
@@ -56,4 +57,7 @@ public interface ExperienciaRepository extends JpaRepository<Experiencia, Long> 
     //Calcula a nota média global do usuário com base nas avaliações recebidas
     @Query("SELECT AVG(e.nota) FROM Experiencia e WHERE e.usuario.id = :idUsuario")
     Double findNotaMediaByUsuarioId(@Param("idUsuario") Long idUsuario);
+
+    @EntityGraph(attributePaths = {"usuario", "bebida"})
+    Optional<Experiencia> findById(Long id);
 }

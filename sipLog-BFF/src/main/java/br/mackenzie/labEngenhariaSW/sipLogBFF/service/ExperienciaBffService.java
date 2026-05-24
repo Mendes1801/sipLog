@@ -14,6 +14,7 @@ import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.ComentarioResponseDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.NovaExperienciaDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.NovoComentarioDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.UsuarioResumoDTO;
+import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.recive.FeedItemDTORecive;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.recive.PaginaBffDTORecive;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.response.RegistroExperienciaDTO;
 
@@ -113,6 +114,13 @@ public class ExperienciaBffService {
                 .body(dto)
                 .retrieve()
                 .body(RegistroExperienciaDTO.class); // Devolve o post atualizado
+    }
+
+    public RegistroExperienciaDTO buscarPorId(Long id) {
+        return restClient.get()
+                .uri(apiCoreBaseUrl + "/apiCore/v1/experiencias/" + id)
+                .retrieve()
+                .body(RegistroExperienciaDTO.class);
     }
 
 

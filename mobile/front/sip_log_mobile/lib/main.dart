@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'screens/busca_usuarios_screen.dart';
 import 'screens/feed_screen.dart';
 import 'screens/nova_experiencia_screen.dart';
 import 'screens/profile_screen.dart';
@@ -80,7 +81,7 @@ class _TelaNavegacaoBaseState extends State<TelaNavegacaoBase> {
       case 0:
         return FeedScreen(key: _feedKey);
       case 1:
-        return const Center(child: Text('Pesquisa', style: TextStyle(fontSize: 20)));
+        return const BuscaUsuariosScreen();
       case 3:
         return const Center(child: Text('Notificações', style: TextStyle(fontSize: 20)));
       case 4:

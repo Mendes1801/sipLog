@@ -49,7 +49,7 @@ public class ExperienciaCoreController {
 
         // Cria o DTO de resposta a partir da entidade
         RegistroExperienciaDTO registroExperienciaDTO = new RegistroExperienciaDTO(
-            experiencia.getUsuario().getId(),
+            new UsuarioResumoDTO(experiencia.getUsuario().getId(), experiencia.getUsuario().getNome(), experiencia.getUsuario().getFotoAvatarUrl()),
             experiencia.getBebida().getId(),
             experiencia.getNota(),
             experiencia.getComentario(),
@@ -72,7 +72,7 @@ public class ExperienciaCoreController {
 
         // Mapeia para o DTO de resposta
         RegistroExperienciaDTO response = new RegistroExperienciaDTO(
-            entidade.getUsuario().getId(),
+            new UsuarioResumoDTO(entidade.getUsuario().getId(), entidade.getUsuario().getNome(), entidade.getUsuario().getFotoAvatarUrl()),
             entidade.getBebida().getId(),
             entidade.getNota(),
             entidade.getComentario(),
@@ -95,7 +95,7 @@ public class ExperienciaCoreController {
         Experiencia entidade = experienciaService.editarExperiencia(id, dto, principal.getSubject());
         
         RegistroExperienciaDTO response = new RegistroExperienciaDTO(
-            entidade.getUsuario().getId(),
+            new UsuarioResumoDTO(entidade.getUsuario().getId(), entidade.getUsuario().getNome(), entidade.getUsuario().getFotoAvatarUrl()),
             entidade.getBebida().getId(),
             entidade.getNota(),
             entidade.getComentario(),

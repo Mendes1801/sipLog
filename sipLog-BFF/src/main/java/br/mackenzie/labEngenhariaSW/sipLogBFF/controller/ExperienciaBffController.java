@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.ComentarioResponseDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.NovaExperienciaDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.NovoComentarioDTO;
+import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.recive.FeedItemDTORecive;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.recive.PaginaBffDTORecive;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.dto.response.RegistroExperienciaDTO;
 import br.mackenzie.labEngenhariaSW.sipLogBFF.service.ExperienciaBffService;
@@ -30,6 +31,17 @@ public class ExperienciaBffController {
 
     public ExperienciaBffController(ExperienciaBffService experienciaService) {
         this.experienciaService = experienciaService;
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<RegistroExperienciaDTO> buscarExperienciaPorId(@PathVariable Long id) {
+        RegistroExperienciaDTO experiencia = experienciaService.buscarPorId(id);
+        
+        if (experiencia != null) {
+            return ResponseEntity.ok(experiencia);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     // ITEM 3: Criar Experiência (O "Postar" final)

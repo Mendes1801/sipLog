@@ -128,6 +128,18 @@ public class UsuarioCoreService {
         Pageable paginacao = PageRequest.of(pagina, 20); // Traz 20 registros por vez
         return usuarioRepository.findByNomeContainingIgnoreCase(nome, paginacao);
     }
+
+    public Page<Usuario> listarQuemUsuarioSegue(Long idUsuario, int pagina) {
+        Pageable paginacao = PageRequest.of(pagina, 20); // 20 amigos por página
+        
+        // Buscamos as relações de seguidor
+        Page<Seguidor> relacoes = seguidorRepository.findBySeguidorId(idUsuario, paginacao);
+        
+        // Convertemos a página de vínculos (Seguidor) para uma página de perfis reais (Usuario)
+        return relacoes.map(Seguidor::getSeguido);
+    }
+
+
         //============================= Axiliares para o Controller =============================
 
         //Conta total de seguidores

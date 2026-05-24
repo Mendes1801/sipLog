@@ -75,4 +75,11 @@ public class BebidaCoreController {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(dtoResumo);
     }
+
+    // Adicione este endpoint na classe BebidaCoreController
+    @GetMapping("/categorias")
+    public ResponseEntity<List<String>> obterCategorias() {
+        List<String> categorias = bebidaService.listarCategorias();
+        return ResponseEntity.ok(categorias);
+    }
 }

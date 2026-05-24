@@ -50,6 +50,24 @@ class HttpApiService {
     return await http.delete(uri, headers: headers);
   }
 
+  Future<String> upload(String filePath) async {
+    final uri = Uri.parse('$baseUrl/upload');
+    final token = await authService.getValidAccessToken();
+    
+    var request = http.MultipartRequest('POST', uri);
+    request.headers.addAll({
+      if (token != null) 'Authorization': 'Bearer $token',
+    });
+    
+    request.files.add(await http.MultipartFile.fromPath('file', filePath));
+    
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+    
+    final dynamic data = handleResponse(response);
+    return data['url'];
+  }
+
   dynamic handleResponse(http.Response response) {
     debugPrint('Resposta da API: [${response.statusCode}] em ${response.request?.url}');
     if (response.statusCode >= 200 && response.statusCode < 300) {

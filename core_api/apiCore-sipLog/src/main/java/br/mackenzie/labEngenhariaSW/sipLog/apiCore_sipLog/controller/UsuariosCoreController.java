@@ -194,4 +194,21 @@ public class UsuariosCoreController {
     }
 
 
+    @GetMapping("/{idUsuario}/seguindo")
+    public ResponseEntity<Page<UsuarioResumoDTO>> getSeguindo(
+            @PathVariable Long idUsuario,
+            @RequestParam(defaultValue = "0") int pagina) {
+        
+        Page<Usuario> seguindo = usuarioService.listarQuemUsuarioSegue(idUsuario, pagina);
+        
+        // Mapeia para o DTO de resumo (id, nome, fotoAvatarUrl)
+        Page<UsuarioResumoDTO> dtos = seguindo.map(u -> new UsuarioResumoDTO(
+                u.getId(),
+                u.getNome(),
+                u.getFotoAvatarUrl()
+        ));
+        
+        return ResponseEntity.ok(dtos);
+    }
+    
 }

@@ -108,7 +108,14 @@ public class UsuarioBffService {
     public PaginaBffDTORecive<UsuarioResumoDTO> buscarUsuariosPorNome(String termoBusca, int pagina) {
         return restClient.get()
                 // api-core mapeado na rede interna do docker ou localhost dependendo do ambiente
-                .uri("http://api-core:8082/apiCore/v1/usuarios/buscar?q=" + termoBusca + "&pagina=" + pagina) 
+                .uri(apiCoreBaseUrl + "/apiCore/v1/usuarios/buscar?q=" + termoBusca + "&pagina=" + pagina) 
+                .retrieve()
+                .body(new ParameterizedTypeReference<PaginaBffDTORecive<UsuarioResumoDTO>>() {});
+    }
+
+    public PaginaBffDTORecive<UsuarioResumoDTO> listarQuemUsuarioSegue(Long idUsuario, int pagina) {
+        return restClient.get()
+                .uri(apiCoreBaseUrl + "/apiCore/v1/usuarios/" + idUsuario + "/seguindo?pagina=" + pagina)
                 .retrieve()
                 .body(new ParameterizedTypeReference<PaginaBffDTORecive<UsuarioResumoDTO>>() {});
     }

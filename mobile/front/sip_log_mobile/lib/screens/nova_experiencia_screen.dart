@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart'; 
 import 'package:provider/provider.dart';
@@ -5,6 +6,7 @@ import '../models/bebida_models.dart';
 import '../models/experiencia_models.dart';
 import '../services/http_bebida_service.dart';
 import '../services/http_experiencia_service.dart';
+import 'nova_bebida_screen.dart';
 
 class NovaExperienciaScreen extends StatefulWidget {
   const NovaExperienciaScreen({super.key});
@@ -35,7 +37,9 @@ class _NovaExperienciaScreenState extends State<NovaExperienciaScreen> {
   Future<void> _carregarBebidas() async {
     final bebidaService = Provider.of<HttpBebidaService>(context, listen: false);
     try {
+      debugPrint('Buscando bebidas...');
       final bebidas = await bebidaService.buscarBebidas("");
+      debugPrint('Bebidas encontradas: ${bebidas.length}');
       if (mounted) {
         setState(() {
           _bebidasDisponiveis = bebidas;
@@ -43,6 +47,7 @@ class _NovaExperienciaScreenState extends State<NovaExperienciaScreen> {
         });
       }
     } catch (e) {
+      debugPrint('Erro ao carregar bebidas: $e');
       if (mounted) {
         setState(() => _carregandoBebidas = false);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -80,15 +85,23 @@ class _NovaExperienciaScreenState extends State<NovaExperienciaScreen> {
         return;
     }
 
+    setState(() => _carregandoBebidas = true); // Usando flag de busy reutilizada
+
     final experienciaService = Provider.of<HttpExperienciaService>(context, listen: false);
 
     try {
+      // 1. Upload da foto primeiro
+      debugPrint('Fazendo upload da foto...');
+      final String urlFoto = await experienciaService.upload(_imagemSelecionada!.path);
+      debugPrint('Upload concluído: $urlFoto');
+
+      // 2. Registrar a experiência com a URL retornada
       await experienciaService.registrarNovaExperiencia(NovaExperienciaDTO(
         idBebida: _bebidaSelecionada!.idBebida!,
         nota: _nota,
         comentario: _comentarioController.text,
         visibilidade: 'PUBLICO',
-        fotoPostUrl: _imagemSelecionada!.path,
+        fotoPostUrl: urlFoto,
         localizacao: 'Minha Localização',
       ));
       if (mounted) {
@@ -96,6 +109,7 @@ class _NovaExperienciaScreenState extends State<NovaExperienciaScreen> {
       }
     } catch (e) {
       if (mounted) {
+        setState(() => _carregandoBebidas = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Erro ao publicar: $e')),
         );
@@ -128,7 +142,7 @@ class _NovaExperienciaScreenState extends State<NovaExperienciaScreen> {
                 child: _imagemSelecionada != null
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(15),
-                        child: Image.network(_imagemSelecionada!.path, fit: BoxFit.cover, width: double.infinity,),
+                        child: Image.file(File(_imagemSelecionada!.path), fit: BoxFit.cover, width: double.infinity,),
                       )
                     : Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -144,23 +158,50 @@ class _NovaExperienciaScreenState extends State<NovaExperienciaScreen> {
 
             _carregandoBebidas
               ? const CircularProgressIndicator()
-              : DropdownButtonFormField<BebidaResumoDTO>(
-              decoration: const InputDecoration(
-                labelText: 'Qual bebida você escolheu?',
-                border: OutlineInputBorder(),
-              ),
-              items: _bebidasDisponiveis.map((bebida) {
-                return DropdownMenuItem<BebidaResumoDTO>(
-                  value: bebida,
-                  child: Text(bebida.nome ?? 'Sem nome'),
-                );
-              }).toList(),
-              onChanged: (valor) {
-                setState(() {
-                  _bebidaSelecionada = valor;
-                });
-              },
-            ),
+              : Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<BebidaResumoDTO>(
+                        decoration: const InputDecoration(
+                          labelText: 'Qual bebida você escolheu?',
+                          border: OutlineInputBorder(),
+                        ),
+                        value: _bebidaSelecionada,
+                        items: _bebidasDisponiveis.map((bebida) {
+                          return DropdownMenuItem<BebidaResumoDTO>(
+                            value: bebida,
+                            child: Text(bebida.nome ?? 'Sem nome'),
+                          );
+                        }).toList(),
+                        onChanged: (valor) {
+                          setState(() {
+                            _bebidaSelecionada = valor;
+                          });
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    IconButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const NovaBebidaScreen()),
+                        ).then((bebidaCadastrada) {
+                          if (bebidaCadastrada != null && bebidaCadastrada is BebidaResumoDTO) {
+                            setState(() {
+                              _bebidasDisponiveis.add(bebidaCadastrada);
+                              _bebidaSelecionada = bebidaCadastrada;
+                            });
+                          } else {
+                            _carregarBebidas();
+                          }
+                        });
+                      },
+                      icon: const Icon(Icons.add_circle, color: Colors.deepPurple, size: 40),
+                      tooltip: 'Cadastrar nova bebida',
+                    ),
+                  ],
+                ),
             const SizedBox(height: 20),
 
             const Text('Sua Nota:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),

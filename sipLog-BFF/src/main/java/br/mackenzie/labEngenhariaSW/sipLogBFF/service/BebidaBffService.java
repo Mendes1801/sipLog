@@ -53,5 +53,13 @@ public class BebidaBffService {
                 .retrieve()
                 .body(BebidaResumoDTO.class); // Recebemos o objeto com o ID preenchido!
     }
-    
+
+    // Adicione este método dentro da classe BebidaBffService
+    public List<String> listarCategorias() {
+        return restClient.get()
+                .uri(apiCoreBaseUrl + "/apiCore/v1/bebidas/categorias")
+                .retrieve()
+                .body(new ParameterizedTypeReference<List<String>>() {});
+    }
+        
 }

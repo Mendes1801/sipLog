@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,13 +28,10 @@ public class BebidaBffController {
         this.bebidaService = bebidaService;
     }
 
-    // Buscar bebidas por id 
     @GetMapping("/{id}")
-    public ResponseEntity<DetalheBebidaDTO> buscarBebidaPorId(@RequestParam Long id) {
+    public ResponseEntity<DetalheBebidaDTO> buscarBebidaPorId(@PathVariable Long id) {
         DetalheBebidaDTO bebida = bebidaService.buscarPorId(id);
         
-        
-        //Verificar se essa é a melhor forma de fazer isso
         if (bebida != null) {
             return ResponseEntity.ok(bebida);
         } else {
@@ -55,5 +53,12 @@ public class BebidaBffController {
     public ResponseEntity<List<BebidaResumoDTO>> buscarBebidas(@RequestParam String q) {
         List<BebidaResumoDTO> bebidas = bebidaService.buscarNoCatalogo(q);
         return ResponseEntity.ok(bebidas);
+    }
+
+    // Adicione este endpoint na classe BebidaBffController
+    @GetMapping("/categorias")
+    public ResponseEntity<List<String>> listarCategorias() {
+        List<String> categorias = bebidaService.listarCategorias();
+        return ResponseEntity.ok(categorias);
     }
 }

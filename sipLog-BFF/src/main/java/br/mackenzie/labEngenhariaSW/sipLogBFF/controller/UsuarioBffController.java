@@ -96,4 +96,13 @@ public class UsuarioBffController {
         PaginaBffDTORecive<UsuarioResumoDTO> resultado = usuarioService.buscarUsuariosPorNome(termo, pagina);
         return ResponseEntity.ok(resultado);
     }
+
+    @GetMapping("/{idUsuario}/seguindo")
+    public ResponseEntity<PaginaBffDTORecive<UsuarioResumoDTO>> obterSeguindo(
+            @PathVariable Long idUsuario,
+            @RequestParam(defaultValue = "0") int pagina) {
+        
+        PaginaBffDTORecive<UsuarioResumoDTO> resultado = usuarioService.listarQuemUsuarioSegue(idUsuario, pagina);
+        return ResponseEntity.ok(resultado);
+    }
 }

@@ -41,6 +41,11 @@ public class BebidaCoreService {
         return media != null ? media : 0.0;
     }
 
+    // Adicione este método dentro da classe BebidaCoreService
+    public List<String> listarCategorias() {
+        return bebidaRepository.findDistinctCategorias();
+    }
+
     @Transactional
     public Bebida criar(NovaBebidaDTO dto) {
         Bebida bebida = new Bebida();

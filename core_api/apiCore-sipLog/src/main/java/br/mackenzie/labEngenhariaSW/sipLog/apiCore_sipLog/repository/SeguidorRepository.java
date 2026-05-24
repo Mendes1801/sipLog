@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import br.mackenzie.labEngenhariaSW.sipLog.apiCore_sipLog.entity.Seguidor;
@@ -27,4 +28,7 @@ public interface SeguidorRepository extends JpaRepository<Seguidor, Long> {
     Optional<Seguidor> findBySeguidorIdAndSeguidoId(Long id, Long id2);
 
     boolean existsBySeguidorIdAndSeguidoId(Long id, Long idAlvo);
+
+    @EntityGraph(attributePaths = {"seguido"})
+    Page<Seguidor> findBySeguidorId(Long seguidorId, Pageable pageable);
 }
