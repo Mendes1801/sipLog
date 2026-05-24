@@ -18,15 +18,40 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
   final TextEditingController _comentarioController = TextEditingController();
   
   List<ComentarioResponseDTO> _comentarios = [];
+  FeedResponseModel? _postCompleto;
   bool _carregando = true;
   bool _enviando = false;
 
   @override
   void initState() {
     super.initState();
+    _postCompleto = widget.post; // Inicia com o que temos do feed
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _carregarComentarios();
+      _carregarDadosIniciais();
     });
+  }
+
+  Future<void> _carregarDadosIniciais() async {
+    final experienciaService = Provider.of<HttpExperienciaService>(context, listen: false);
+    try {
+      // Busca dados atualizados do post e a lista de comentários em paralelo
+      final resultados = await Future.wait([
+        experienciaService.buscarExperienciaPorId(widget.post.idPost),
+        experienciaService.listarComentarios(widget.post.idPost),
+      ]);
+
+      if (mounted) {
+        setState(() {
+          _postCompleto = resultados[0] as FeedResponseModel;
+          _comentarios = (resultados[1] as PaginaBffComentarioDTO).content;
+          _carregando = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Erro ao carregar dados: $e');
+      // Tenta carregar apenas comentários se o fetch do post falhar
+      _carregarComentarios();
+    }
   }
 
   Future<void> _carregarComentarios() async {
@@ -43,7 +68,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       if (mounted) {
         setState(() => _carregando = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao carregar comentários: $e')),
+          SnackBar(content: Text('Erro ao carregar detalhes: $e')),
         );
       }
     }
@@ -93,10 +118,11 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
           Expanded(
             child: ListView(
               children: [
-                PostCard(
-                  post: widget.post,
-                  isDetailScreen: true,
-                ),
+                if (_postCompleto != null)
+                  PostCard(
+                    post: _postCompleto!,
+                    isDetailScreen: true,
+                  ),
 
                 const Padding(
                   padding: EdgeInsets.all(15.0),

@@ -24,6 +24,11 @@ class HttpUserService extends HttpApiService {
     handleResponse(response);
   }
 
+  Future<void> sincronizarUsuario() async {
+    final response = await post('/usuarios/sync');
+    handleResponse(response);
+  }
+
   Future<List<UsuarioResumoDTO>> buscarUsuarios(String query) async {
     final response = await get('/usuarios/buscar', queryParameters: {'q': query});
     final List<dynamic> data = handleResponse(response);
@@ -32,6 +37,13 @@ class HttpUserService extends HttpApiService {
 
   Future<List<UsuarioResumoDTO>> getSeguidores(int idUsuario, {int pagina = 0}) async {
     final response = await get('/usuarios/$idUsuario/seguidores', queryParameters: {'pagina': pagina.toString()});
+    final Map<String, dynamic> data = handleResponse(response);
+    final List<dynamic> contentList = data['content'];
+    return contentList.map((json) => UsuarioResumoDTO.fromJson(json)).toList();
+  }
+
+  Future<List<UsuarioResumoDTO>> getSeguindo(int idUsuario, {int pagina = 0}) async {
+    final response = await get('/usuarios/$idUsuario/seguindo', queryParameters: {'pagina': pagina.toString()});
     final Map<String, dynamic> data = handleResponse(response);
     final List<dynamic> contentList = data['content'];
     return contentList.map((json) => UsuarioResumoDTO.fromJson(json)).toList();

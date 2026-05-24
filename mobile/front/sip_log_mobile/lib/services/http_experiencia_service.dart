@@ -1,4 +1,5 @@
 import '../models/experiencia_models.dart';
+import '../models/feed_response_model.dart';
 import 'http_api_service.dart';
 
 class HttpExperienciaService extends HttpApiService {
@@ -27,5 +28,10 @@ class HttpExperienciaService extends HttpApiService {
   Future<void> deletarExperiencia(int id) async {
     final response = await delete('/experiencias/$id');
     handleResponse(response);
+  }
+
+  Future<FeedResponseModel> buscarExperienciaPorId(int id) async {
+    final response = await get('/experiencias/$id');
+    return FeedResponseModel.fromJson(handleResponse(response));
   }
 }

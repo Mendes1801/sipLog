@@ -76,6 +76,17 @@ class _TelaNavegacaoBaseState extends State<TelaNavegacaoBase> {
   int _indiceAtual = 0;
   UniqueKey _feedKey = UniqueKey();
 
+  @override
+  void initState() {
+    super.initState();
+    // Garante a sincronização do usuário com o backend logo na entrada
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<HttpUserService>(context, listen: false).sincronizarUsuario().catchError((e) {
+        debugPrint('Erro na sincronização inicial: $e');
+      });
+    });
+  }
+
   Widget _construirTelaAtual() {
     switch (_indiceAtual) {
       case 0:

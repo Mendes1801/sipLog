@@ -19,4 +19,10 @@ class HttpBebidaService extends HttpApiService {
     final response = await post('/bebidas', body: novaBebida.toJson());
     return BebidaResumoDTO.fromJson(handleResponse(response));
   }
+
+  Future<List<String>> listarCategorias() async {
+    final response = await get('/bebidas/categorias');
+    final List<dynamic> data = handleResponse(response);
+    return data.map((e) => e.toString()).toList();
+  }
 }

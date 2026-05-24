@@ -16,7 +16,34 @@ class _NovaBebidaScreenState extends State<NovaBebidaScreen> {
   final _fabricanteController = TextEditingController();
   final _categoriaController = TextEditingController();
   
+  List<String> _categoriasDisponiveis = [];
+  bool _carregandoCategorias = true;
+  
   final List<MapEntry<TextEditingController, TextEditingController>> _caracteristicasControllers = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _carregarCategorias();
+  }
+
+  Future<void> _carregarCategorias() async {
+    final bebidaService = Provider.of<HttpBebidaService>(context, listen: false);
+    try {
+      final categorias = await bebidaService.listarCategorias();
+      if (mounted) {
+        setState(() {
+          _categoriasDisponiveis = categorias;
+          _carregandoCategorias = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _carregandoCategorias = false);
+        debugPrint('Erro ao carregar categorias: $e');
+      }
+    }
+  }
 
   void _addCaracteristica() {
     setState(() {
@@ -106,11 +133,41 @@ class _NovaBebidaScreenState extends State<NovaBebidaScreen> {
                 validator: (v) => v == null || v.isEmpty ? 'Campo obrigatório' : null,
               ),
               const SizedBox(height: 15),
-              TextFormField(
-                controller: _categoriaController,
-                decoration: const InputDecoration(labelText: 'Categoria (ex: Cerveja, Vinho)', border: OutlineInputBorder()),
-                validator: (v) => v == null || v.isEmpty ? 'Campo obrigatório' : null,
-              ),
+              _carregandoCategorias
+                ? const Center(child: CircularProgressIndicator())
+                : Autocomplete<String>(
+                    optionsBuilder: (TextEditingValue textEditingValue) {
+                      if (textEditingValue.text.isEmpty) {
+                        return _categoriasDisponiveis;
+                      }
+                      return _categoriasDisponiveis.where((String option) {
+                        return option.toLowerCase().contains(textEditingValue.text.toLowerCase());
+                      });
+                    },
+                    onSelected: (String selection) {
+                      _categoriaController.text = selection;
+                    },
+                    fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
+                      // Sincroniza o controller interno do Autocomplete com o nosso controller da classe
+                      if (_categoriaController.text.isNotEmpty && controller.text.isEmpty) {
+                        controller.text = _categoriaController.text;
+                      }
+                      controller.addListener(() {
+                        _categoriaController.text = controller.text;
+                      });
+
+                      return TextFormField(
+                        controller: controller,
+                        focusNode: focusNode,
+                        decoration: const InputDecoration(
+                          labelText: 'Categoria (Selecione ou digite uma nova)',
+                          border: OutlineInputBorder(),
+                          suffixIcon: Icon(Icons.arrow_drop_down),
+                        ),
+                        validator: (v) => v == null || v.isEmpty ? 'Campo obrigatório' : null,
+                      );
+                    },
+                  ),
               const SizedBox(height: 30),
               const Text('Características Adicionais:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               const SizedBox(height: 10),

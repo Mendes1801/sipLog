@@ -13,11 +13,19 @@ class AuthService extends ChangeNotifier {
 
   String? _accessToken;
   String? _refreshToken;
+  String? _idToken;
+  DateTime? _accessTokenExpiration;
   bool _isBusy = false;
 
   String? get accessToken => _accessToken;
   bool get isAuthenticated => _accessToken != null;
   bool get isBusy => _isBusy;
+
+  static const _config = AuthorizationServiceConfiguration(
+    authorizationEndpoint: '$_issuer/protocol/openid-connect/auth',
+    tokenEndpoint: '$_issuer/protocol/openid-connect/token',
+    endSessionEndpoint: '$_issuer/protocol/openid-connect/logout',
+  );
 
   Future<void> login() async {
     _isBusy = true;
@@ -28,23 +36,26 @@ class AuthService extends ChangeNotifier {
         AuthorizationTokenRequest(
           _clientId,
           _redirectUrl,
-          serviceConfiguration: AuthorizationServiceConfiguration(
-            authorizationEndpoint: '$_issuer/protocol/openid-connect/auth',
-            tokenEndpoint: '$_issuer/protocol/openid-connect/token',
-            endSessionEndpoint: '$_issuer/protocol/openid-connect/logout',
-          ),
+          serviceConfiguration: _config,
           scopes: ['openid', 'profile', 'email', 'offline_access'],
-
           allowInsecureConnections: true,
-          // Mantido sem parâmetros adicionais que gerem conflitos no builder nativo
         ),
       );
 
       debugPrint('👉 KEYCLOAK RESULT: $result');
       if (result != null) {
-        await _saveTokens(result.accessToken, result.refreshToken);
         _accessToken = result.accessToken;
         _refreshToken = result.refreshToken;
+        _idToken = result.idToken;
+        _accessTokenExpiration = result.accessTokenExpirationDateTime;
+        
+        await _saveTokens(
+          _accessToken, 
+          _refreshToken, 
+          _idToken, 
+          _accessTokenExpiration?.millisecondsSinceEpoch
+        );
+        notifyListeners();
       }
     } catch (e, s) {
       print('❌ ERRO CRÍTICO NO LOGIN DART: $e');
@@ -56,36 +67,104 @@ class AuthService extends ChangeNotifier {
   }
 
   Future<void> logout() async {
-    _accessToken = null;
-    _refreshToken = null;
-    await _secureStorage.delete(key: 'access_token');
-    await _secureStorage.delete(key: 'refresh_token');
+    _isBusy = true;
     notifyListeners();
+
+    try {
+      // Invalida a sessão no Keycloak
+      if (_idToken != null) {
+        await _appAuth.endSession(
+          EndSessionRequest(
+            idTokenHint: _idToken,
+            postLogoutRedirectUrl: _redirectUrl,
+            serviceConfiguration: _config,
+            allowInsecureConnections: true,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Erro ao invalidar sessão no Keycloak: $e');
+    } finally {
+      _accessToken = null;
+      _refreshToken = null;
+      _idToken = null;
+      _accessTokenExpiration = null;
+      
+      await _secureStorage.deleteAll();
+      _isBusy = false;
+      notifyListeners();
+    }
   }
 
-  Future<void> _saveTokens(String? accessToken, String? refreshToken) async {
-    if (accessToken != null) {
-      await _secureStorage.write(key: 'access_token', value: accessToken);
-    }
-    if (refreshToken != null) {
-      await _secureStorage.write(key: 'refresh_token', value: refreshToken);
-    }
+  Future<void> _saveTokens(String? access, String? refresh, String? id, int? expiry) async {
+    if (access != null) await _secureStorage.write(key: 'access_token', value: access);
+    if (refresh != null) await _secureStorage.write(key: 'refresh_token', value: refresh);
+    if (id != null) await _secureStorage.write(key: 'id_token', value: id);
+    if (expiry != null) await _secureStorage.write(key: 'expiry', value: expiry.toString());
   }
 
   Future<void> tryAutoLogin() async {
-    final String? savedAccessToken = await _secureStorage.read(key: 'access_token');
-    final String? savedRefreshToken = await _secureStorage.read(key: 'refresh_token');
+    final String? access = await _secureStorage.read(key: 'access_token');
+    final String? refresh = await _secureStorage.read(key: 'refresh_token');
+    final String? id = await _secureStorage.read(key: 'id_token');
+    final String? expiryStr = await _secureStorage.read(key: 'expiry');
 
-    if (savedAccessToken != null) {
-      _accessToken = savedAccessToken;
-      _refreshToken = savedRefreshToken;
+    if (access != null) {
+      _accessToken = access;
+      _refreshToken = refresh;
+      _idToken = id;
+      if (expiryStr != null) {
+        _accessTokenExpiration = DateTime.fromMillisecondsSinceEpoch(int.parse(expiryStr));
+      }
       notifyListeners();
-      // Em um cenário real, deveríamos validar o token aqui ou tentar um refresh
     }
   }
 
   Future<String?> getValidAccessToken() async {
-    // Implementar lógica de refresh aqui se necessário
+    if (_accessToken == null) return null;
+
+    // Se o token expira em menos de 1 minuto, renova
+    final now = DateTime.now();
+    if (_accessTokenExpiration == null || _accessTokenExpiration!.isBefore(now.add(const Duration(minutes: 1)))) {
+      await _refreshAccessToken();
+    }
+
     return _accessToken;
+  }
+
+  Future<void> _refreshAccessToken() async {
+    if (_refreshToken == null) return;
+
+    try {
+      debugPrint('🔄 Renovando Access Token...');
+      final result = await _appAuth.token(
+        TokenRequest(
+          _clientId,
+          _redirectUrl,
+          refreshToken: _refreshToken,
+          serviceConfiguration: _config,
+          allowInsecureConnections: true,
+        ),
+      );
+
+      if (result != null) {
+        _accessToken = result.accessToken;
+        _refreshToken = result.refreshToken;
+        _idToken = result.idToken;
+        _accessTokenExpiration = result.accessTokenExpirationDateTime;
+
+        await _saveTokens(
+          _accessToken, 
+          _refreshToken, 
+          _idToken, 
+          _accessTokenExpiration?.millisecondsSinceEpoch
+        );
+        debugPrint('✅ Token renovado com sucesso!');
+      }
+    } catch (e) {
+      debugPrint('❌ Erro ao renovar token: $e');
+      // Se falhar o refresh, desloga o usuário
+      await logout();
+    }
   }
 }
