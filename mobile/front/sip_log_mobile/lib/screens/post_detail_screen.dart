@@ -142,7 +142,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                   PostCard(
                     post: _postCompleto!,
                     isDetailScreen: true,
+                    onPostDeletado: () => Navigator.pop(context),
                   ),
+
 
                 const Padding(
                   padding: EdgeInsets.all(15.0),

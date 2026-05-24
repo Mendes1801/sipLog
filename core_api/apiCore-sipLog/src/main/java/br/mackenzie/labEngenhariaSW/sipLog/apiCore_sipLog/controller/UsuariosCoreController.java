@@ -52,6 +52,7 @@ public class UsuariosCoreController {
 
 
         PerfilDTO usuarioPerfilDTO = new PerfilDTO(
+            false,
             new UsuarioPerfilDTO(
                 usuarioPerfil.getId(),
                 usuarioPerfil.getNome(),
@@ -83,6 +84,7 @@ public class UsuariosCoreController {
         
 
         PerfilDTO perfilDTO = new PerfilDTO(
+            false,
             new UsuarioPerfilDTO(
                 usuario.getId(),
                 usuario.getNome(),
@@ -128,6 +130,7 @@ public class UsuariosCoreController {
         long seguidores = usuarioService.contarSeguidores(usuario.getId());
         
         PerfilDTO perfilDTO = new PerfilDTO(
+            usuarioService.isSeguidoPorMim(principal.getSubject(), idAlvo),
             new UsuarioPerfilDTO(
                 usuario.getId(),
                 usuario.getNome(),

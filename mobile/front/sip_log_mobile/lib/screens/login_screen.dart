@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../services/auth_service.dart';
+
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -44,10 +46,21 @@ class LoginScreen extends StatelessWidget {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                   ),
                   child: const Text(
-                    'Entrar com Keycloak',
+                    'Entrar',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
+                const SizedBox(height: 15),
+                TextButton(
+                  onPressed: () async {
+                    final Uri url = Uri.parse('http://ec2-52-2-112-100.compute-1.amazonaws.com:8080/realms/BFF/protocol/openid-connect/registrations?client_id=sipLog&response_type=code&scope=openid%20profile%20email&redirect_uri=com.example.siplogmobile://oauth2redirect');
+                    if (await canLaunchUrl(url)) {
+                      await launchUrl(url, mode: LaunchMode.externalApplication);
+                    }
+                  },
+                  child: const Text('Criar conta', style: TextStyle(color: Colors.white70, fontSize: 16)),
+                ),
+
             ],
           ),
         ),

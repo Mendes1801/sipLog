@@ -1,6 +1,7 @@
 package br.mackenzie.labEngenhariaSW.sipLogBFF.dto;
 
 public record PerfilDTO(
+        Boolean seguindoPorMim,
         UsuarioPerfilDTO usuario,
         EstatisticasDTO estatisticas
 ) {
