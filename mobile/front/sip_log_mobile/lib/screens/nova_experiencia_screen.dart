@@ -123,8 +123,6 @@ class _NovaExperienciaScreenState extends State<NovaExperienciaScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Nova Experiência', style: TextStyle(fontFamily: 'BaksoSapi')),
-        backgroundColor: Colors.deepPurple,
-        foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -138,7 +136,7 @@ class _NovaExperienciaScreenState extends State<NovaExperienciaScreen> {
                 decoration: BoxDecoration(
                   color: Colors.grey[200],
                   borderRadius: BorderRadius.circular(15),
-                  border: Border.all(color: Colors.deepPurple.withOpacity(0.3)),
+                  border: Border.all(color: Theme.of(context).colorScheme.primary.withOpacity(0.3)),
                 ),
                 child: _imagemSelecionada != null
                     ? ClipRRect(
@@ -148,9 +146,9 @@ class _NovaExperienciaScreenState extends State<NovaExperienciaScreen> {
                     : Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.add_a_photo, size: 60, color: Colors.deepPurple),
+                          Icon(Icons.add_a_photo, size: 60, color: Theme.of(context).colorScheme.primary),
                           const SizedBox(height: 10),
-                          const Text('Toque para adicionar foto', style: TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold)),
+                          Text('Toque para adicionar foto', style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold)),
                         ],
                       ),
               ),
@@ -198,7 +196,7 @@ class _NovaExperienciaScreenState extends State<NovaExperienciaScreen> {
                           }
                         });
                       },
-                      icon: const Icon(Icons.add_circle, color: Colors.deepPurple, size: 40),
+                      icon: Icon(Icons.add_circle, color: Theme.of(context).colorScheme.primary, size: 40),
                       tooltip: 'Cadastrar nova bebida',
                     ),
                   ],
@@ -249,11 +247,7 @@ class _NovaExperienciaScreenState extends State<NovaExperienciaScreen> {
               height: 50,
               child: ElevatedButton(
                 onPressed: _postar,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepPurple,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
-                ),
-                child: const Text('Publicar no Feed', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                child: const Text('Publicar no Feed', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               ),
             ),
           ],

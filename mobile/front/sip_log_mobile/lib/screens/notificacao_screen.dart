@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/notificacao_models.dart';
 import '../services/http_notificacao_service.dart';
+import 'user_profile_screen.dart';
 
 class NotificacaoScreen extends StatefulWidget {
   const NotificacaoScreen({super.key});
@@ -101,7 +102,7 @@ class _NotificacaoScreenState extends State<NotificacaoScreen> {
   Widget build(BuildContext context) {
     return RefreshIndicator(
       onRefresh: () => _carregarNotificacoes(reset: true),
-      color: Colors.deepPurple,
+      color: Theme.of(context).colorScheme.primary,
       child: _notificacoes.isEmpty && !_carregando
           ? const Center(child: Text('Nenhuma notificação encontrada.'))
           : ListView.separated(
@@ -131,10 +132,23 @@ class _NotificacaoScreenState extends State<NotificacaoScreen> {
                   ),
                   subtitle: Text(notificacao.tempoAtras ?? ''),
                   trailing: notificacao.lida == false
-                      ? const Icon(Icons.circle, color: Colors.deepPurple, size: 12)
+                      ? Icon(Icons.circle, color: Theme.of(context).colorScheme.primary, size: 12)
                       : null,
-                  onTap: () => _marcarComoLida(notificacao),
-                  tileColor: notificacao.lida == false ? Colors.deepPurple.withOpacity(0.05) : null,
+                  onTap: () {
+                    _marcarComoLida(notificacao);
+                    if (notificacao.usuarioOrigem?.idUsuario != null) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => UserProfileScreen(
+                            idUsuario: notificacao.usuarioOrigem!.idUsuario!,
+                            nomeUsuario: notificacao.usuarioOrigem!.nome,
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                  tileColor: notificacao.lida == false ? Theme.of(context).colorScheme.primary.withOpacity(0.05) : null,
                 );
               },
             ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/feed_response_model.dart';
 import '../models/user_models.dart';
+import '../services/auth_service.dart';
 import '../services/http_user_service.dart';
 import '../services/http_feed_service.dart';
 import 'post_detail_screen.dart';
@@ -36,6 +37,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     try {
       debugPrint('🔍 Buscando perfil do usuário: ${widget.idUsuario}');
       final perfil = await userService.getPerfilUsuario(widget.idUsuario);
+      
       debugPrint('✅ Perfil recebido: ${perfil.usuario?.nome}');
       final posts = await feedService.getFeedDeUsuario(widget.idUsuario);
       
@@ -66,6 +68,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     
     try {
       await userService.alternarSeguir(widget.idUsuario);
+      // Recarrega os dados para atualizar contadores e confirmar estado
+      _carregarDados();
     } catch (e) {
       // Reverte se falhar
       setState(() => _estaSeguindo = !_estaSeguindo);
@@ -82,14 +86,15 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.nomeUsuario ?? 'Perfil'),
-        backgroundColor: Colors.deepPurple,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        foregroundColor: Theme.of(context).colorScheme.primary,
       ),
       body: _carregando
-          ? const Center(child: CircularProgressIndicator(color: Colors.deepPurple))
+          ? Center(child: CircularProgressIndicator(color: Theme.of(context).colorScheme.primary))
           : RefreshIndicator(
               onRefresh: _carregarDados,
-              color: Colors.deepPurple,
+              color: Theme.of(context).colorScheme.primary,
               child: CustomScrollView(
                 slivers: [
                   SliverToBoxAdapter(
@@ -159,22 +164,28 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           ),
                           const SizedBox(height: 20),
                           
-                          SizedBox(
-                            width: double.infinity,
-                            child: AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 300),
-                              child: ElevatedButton(
-                                key: ValueKey(_estaSeguindo),
-                                onPressed: _alternarSeguir,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: _estaSeguindo ? Colors.white : Colors.deepPurple,
-                                  foregroundColor: _estaSeguindo ? Colors.deepPurple : Colors.white,
-                                  side: _estaSeguindo ? const BorderSide(color: Colors.deepPurple) : null,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          Consumer<AuthService>(
+                            builder: (context, auth, _) {
+                              if (auth.userId == widget.idUsuario) return const SizedBox.shrink();
+                              
+                              return SizedBox(
+                                width: double.infinity,
+                                child: AnimatedSwitcher(
+                                  duration: const Duration(milliseconds: 300),
+                                  child: ElevatedButton(
+                                    key: ValueKey(_estaSeguindo),
+                                    onPressed: _alternarSeguir,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: _estaSeguindo ? Colors.transparent : Theme.of(context).colorScheme.primary,
+                                      foregroundColor: _estaSeguindo ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onPrimary,
+                                      side: BorderSide(color: Theme.of(context).colorScheme.primary),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                    ),
+                                    child: Text(_estaSeguindo ? 'Seguindo' : 'Seguir'),
+                                  ),
                                 ),
-                                child: Text(_estaSeguindo ? 'Deixar de Seguir' : 'Seguir'),
-                              ),
-                            ),
+                              );
+                            },
                           ),
                           const SizedBox(height: 20),
 
@@ -235,7 +246,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   Widget _buildEstatistica(String titulo, String valor) {
     return Column(
       children: [
-        Text(valor, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.deepPurple)),
+        Text(valor, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary)),
         Text(titulo, style: const TextStyle(color: Colors.grey, fontSize: 13)),
       ],
     );

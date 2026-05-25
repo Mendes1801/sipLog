@@ -111,8 +111,6 @@ class _NovaBebidaScreenState extends State<NovaBebidaScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Cadastrar Bebida', style: TextStyle(fontFamily: 'BaksoSapi')),
-        backgroundColor: Colors.deepPurple,
-        foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -208,11 +206,7 @@ class _NovaBebidaScreenState extends State<NovaBebidaScreen> {
                 height: 50,
                 child: ElevatedButton(
                   onPressed: _salvar,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
-                  ),
-                  child: const Text('Salvar Bebida', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                  child: const Text('Salvar Bebida', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 ),
               ),
             ],

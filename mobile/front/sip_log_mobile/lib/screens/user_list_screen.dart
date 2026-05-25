@@ -91,8 +91,6 @@ class _UserListScreenState extends State<UserListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('$titulo - ${widget.nomeUsuario}', style: const TextStyle(fontSize: 18)),
-        backgroundColor: Colors.deepPurple,
-        foregroundColor: Colors.white,
       ),
       body: _usuarios.isEmpty && !_carregando
           ? Center(child: Text(widget.modo == UserListMode.seguidores ? 'Nenhum seguidor ainda.' : 'Não segue ninguém ainda.'))

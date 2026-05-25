@@ -20,8 +20,6 @@
 - [x] Criar e integrar Feed de Amigos com TabBar
 - [x] Verificar e testar as mudanças no dispositivo real (Análise Estática concluída)
 - [x] Mudar ícones de Busca e Avisos para o estilo personalizado
-- [x] Tornar notificações clicáveis para navegar até o perfil do usuário
-- [x] Implementar suporte a Daltonismo (Protanopia e Deuteranopia)
-- [x] Implementar Modo Escuro nativo e dinâmico
-- [x] Criar tela de Configurações no Perfil para gestão de temas
-- [x] Padronizar cores em todas as telas para consistência temática
+- [/] Tornar notificações clicáveis para navegar até o perfil do usuário
+    - [ ] Adicionar `idUsuario` ao modelo `UsuarioOrigemDTO`
+    - [ ] Implementar navegação no `onTap` da `NotificacaoScreen`

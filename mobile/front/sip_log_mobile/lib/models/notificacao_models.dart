@@ -1,13 +1,15 @@
 import 'user_models.dart';
 
 class UsuarioOrigemDTO {
+  final int? idUsuario;
   final String? nome;
   final String? fotoAvatarUrl;
 
-  UsuarioOrigemDTO({this.nome, this.fotoAvatarUrl});
+  UsuarioOrigemDTO({this.idUsuario, this.nome, this.fotoAvatarUrl});
 
   factory UsuarioOrigemDTO.fromJson(Map<String, dynamic> json) {
     return UsuarioOrigemDTO(
+      idUsuario: json['idUsuario'] ?? json['id'], // Tenta as duas possibilidades comuns
       nome: json['nome'],
       fotoAvatarUrl: json['fotoAvatarUrl'],
     );

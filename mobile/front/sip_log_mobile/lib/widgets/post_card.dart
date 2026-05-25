@@ -180,7 +180,7 @@ class _PostCardState extends State<PostCard> {
             const SizedBox(height: 12),
             
             Text(widget.post.nomeBebida, 
-                 style: const TextStyle(fontFamily: 'BaksoSapi', fontSize: 24, color: Colors.deepPurple)),
+                 style: TextStyle(fontFamily: 'BaksoSapi', fontSize: 24, color: Theme.of(context).colorScheme.primary)),
             Text(widget.post.categoriaBebida, style: const TextStyle(fontStyle: FontStyle.italic, color: Colors.grey)),
             const SizedBox(height: 8),
             

@@ -3,9 +3,11 @@ import 'package:provider/provider.dart';
 import 'screens/busca_usuarios_screen.dart';
 import 'screens/feed_screen.dart';
 import 'screens/nova_experiencia_screen.dart';
+import 'screens/amigos_feed_screen.dart';
 import 'screens/notificacao_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/login_screen.dart';
+import 'services/theme_service.dart';
 import 'services/auth_service.dart';
 import 'services/http_user_service.dart';
 import 'services/http_feed_service.dart';
@@ -15,8 +17,11 @@ import 'services/http_bebida_service.dart';
 
 void main() {
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => AuthService()..tryAutoLogin(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ThemeService()),
+        ChangeNotifierProvider(create: (_) => AuthService()..tryAutoLogin()),
+      ],
       child: const SipLogApp(),
     ),
   );
@@ -27,6 +32,8 @@ class SipLogApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeService = Provider.of<ThemeService>(context);
+
     return MultiProvider(
       providers: [
         ProxyProvider<AuthService, HttpUserService>(
@@ -48,10 +55,9 @@ class SipLogApp extends StatelessWidget {
       child: MaterialApp(
         title: 'SipLog',
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          primarySwatch: Colors.deepPurple,
-          useMaterial3: true,
-        ),
+        themeMode: themeService.themeMode,
+        theme: themeService.getThemeData(false),
+        darkTheme: themeService.getThemeData(true),
         home: Consumer<AuthService>(
           builder: (context, auth, _) {
             if (auth.isAuthenticated) {
@@ -82,16 +88,36 @@ class _TelaNavegacaoBaseState extends State<TelaNavegacaoBase> {
     super.initState();
     // Garante a sincronização do usuário com o backend logo na entrada
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<HttpUserService>(context, listen: false).sincronizarUsuario().catchError((e) {
-        debugPrint('Erro na sincronização inicial: $e');
-      });
+      _inicializarDados();
     });
+  }
+
+  Future<void> _inicializarDados() async {
+    final userService = Provider.of<HttpUserService>(context, listen: false);
+    final authService = Provider.of<AuthService>(context, listen: false);
+    try {
+      await userService.sincronizarUsuario();
+      final perfil = await userService.getMeuPerfil();
+      if (mounted) {
+        authService.updateUserData(
+          avatarUrl: perfil.usuario?.fotoAvatarUrl,
+          id: perfil.usuario?.idUsuario,
+        );
+      }
+    } catch (e) {
+      debugPrint('Erro na inicialização: $e');
+    }
   }
 
   Widget _construirTelaAtual() {
     switch (_indiceAtual) {
       case 0:
-        return FeedScreen(key: _feedKey);
+        return TabBarView(
+          children: [
+            FeedScreen(key: _feedKey),
+            const AmigosFeedScreen(),
+          ],
+        );
       case 1:
         return const BuscaUsuariosScreen();
       case 3:
@@ -105,68 +131,85 @@ class _TelaNavegacaoBaseState extends State<TelaNavegacaoBase> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('SipLog', style: TextStyle(fontFamily: 'BaksoSapi', fontSize: 28)),
-        centerTitle: true,
-        backgroundColor: Colors.deepPurple,
-        foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () {
-              Provider.of<AuthService>(context, listen: false).logout();
-            },
-          ),
-        ],
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('SipLog', style: TextStyle(fontFamily: 'BaksoSapi', fontSize: 28)),
+          bottom: _indiceAtual == 0 
+            ? const TabBar(
+                tabs: [
+                  Tab(text: 'Global'),
+                  Tab(text: 'Amigos'),
+                ],
+              )
+            : null,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.logout),
+              onPressed: () {
+                Provider.of<AuthService>(context, listen: false).logout();
+              },
+            ),
+          ],
+        ),
+        body: _construirTelaAtual(),
+      bottomNavigationBar: Consumer<AuthService>(
+        builder: (context, auth, _) => BottomNavigationBar(
+          currentIndex: _indiceAtual == 2 ? 0 : _indiceAtual,
+          onTap: (index) {
+            if (index == 2) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const NovaExperienciaScreen()),
+              ).then((postou) {
+                if (postou == true) {
+                  setState(() {
+                    _feedKey = UniqueKey();
+                    _indiceAtual = 0;
+                  });
+                }
+              });
+            } else {
+              setState(() => _indiceAtual = index);
+            }
+          },
+          items: [
+            BottomNavigationBarItem(
+              icon: Opacity(opacity: 0.5, child: Image.asset('assets/images/BT_Vinho.png', width: 26)),
+              activeIcon: Image.asset('assets/images/BT_Vinho.png', width: 30),
+              label: 'Feed'
+            ),
+            BottomNavigationBarItem(
+              icon: Opacity(opacity: 0.5, child: Image.asset('assets/images/BT_Pesquisar.png', width: 26)),
+              activeIcon: Image.asset('assets/images/BT_Pesquisar.png', width: 30),
+              label: 'Busca'
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.add_circle, size: 42, color: Theme.of(context).colorScheme.primary),
+              label: 'Postar'
+            ),
+            BottomNavigationBarItem(
+              icon: Opacity(opacity: 0.5, child: Image.asset('assets/images/BT_Notificação.png', width: 26)),
+              activeIcon: Image.asset('assets/images/BT_Notificação.png', width: 30),
+              label: 'Avisos'
+            ),
+            BottomNavigationBarItem(
+              icon: CircleAvatar(
+                radius: 14,
+                backgroundColor: _indiceAtual == 4 ? Theme.of(context).colorScheme.primary : Colors.grey.withOpacity(0.3),
+                child: CircleAvatar(
+                  radius: 13,
+                  backgroundImage: auth.userAvatarUrl != null && auth.userAvatarUrl!.isNotEmpty
+                      ? NetworkImage(auth.userAvatarUrl!)
+                      : const AssetImage('assets/images/BT_Profile.png') as ImageProvider,
+                ),
+              ),
+              label: 'Perfil'
+            ),
+          ],
+        ),
       ),
-      body: _construirTelaAtual(),
-      bottomNavigationBar: BottomNavigationBar(
-        elevation: 8,
-        backgroundColor: Colors.white,
-        currentIndex: _indiceAtual == 2 ? 0 : _indiceAtual,
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: Colors.deepPurple,
-        unselectedItemColor: Colors.grey,
-        onTap: (index) {
-          if (index == 2) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const NovaExperienciaScreen()),
-            ).then((postou) {
-              if (postou == true) {
-                setState(() {
-                  _feedKey = UniqueKey();
-                  _indiceAtual = 0;
-                });
-              }
-            });
-          } else {
-            setState(() => _indiceAtual = index);
-          }
-        },
-        items: [
-          BottomNavigationBarItem(
-            icon: Image.asset('assets/images/BT_Vinho.png', width: 28, color: _indiceAtual == 0 ? Colors.deepPurple : null),
-            label: 'Feed'
-          ),
-          BottomNavigationBarItem(
-            icon: Image.asset('assets/images/BT_Pesquisar.png', width: 28, color: _indiceAtual == 1 ? Colors.deepPurple : null),
-            label: 'Busca'
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.add_circle, size: 40, color: Colors.deepPurple),
-            label: 'Postar'
-          ),
-          BottomNavigationBarItem(
-            icon: Image.asset('assets/images/BT_Notificação.png', width: 28, color: _indiceAtual == 3 ? Colors.deepPurple : null),
-            label: 'Avisos'
-          ),
-          BottomNavigationBarItem(
-            icon: Image.asset('assets/images/BT_Profile.png', width: 28, color: _indiceAtual == 4 ? Colors.deepPurple : null),
-            label: 'Perfil'
-          ),
-        ],
       ),
     );
   }

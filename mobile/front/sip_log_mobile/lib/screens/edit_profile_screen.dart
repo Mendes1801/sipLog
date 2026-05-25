@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../models/user_models.dart';
+import '../services/auth_service.dart';
 import '../services/http_user_service.dart';
-import '../services/http_api_service.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -89,7 +89,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         bio: _bioController.text,
         fotoAvatarUrl: finalAvatarUrl,
       ));
+      
+      // Atualiza o avatar globalmente se foi alterado
       if (mounted) {
+        Provider.of<AuthService>(context, listen: false).updateAvatarUrl(finalAvatarUrl);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Perfil atualizado com sucesso!'), backgroundColor: Colors.green),
         );
@@ -153,8 +156,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Editar Perfil', style: TextStyle(fontFamily: 'BaksoSapi')),
-        backgroundColor: Colors.deepPurple,
-        foregroundColor: Colors.white,
       ),
       body: _carregando
         ? const Center(child: CircularProgressIndicator())
@@ -182,7 +183,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       onTap: _selecionarImagem, // Retornado para a função direta
                       child: Container(
                         padding: const EdgeInsets.all(8),
-                        decoration: const BoxDecoration(color: Colors.deepPurple, shape: BoxShape.circle),
+                        decoration: BoxDecoration(color: Theme.of(context).colorScheme.primary, shape: BoxShape.circle),
                         child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
                       ),
                     ),
@@ -210,8 +211,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               height: 50,
               child: ElevatedButton(
                 onPressed: _salvarPerfil,
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.deepPurple, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
-                child: const Text('Salvar Alterações', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                child: const Text('Salvar Alterações', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               ),
             ),
 

@@ -43,26 +43,6 @@ class _BuscaUsuariosScreenState extends State<BuscaUsuariosScreen> {
     }
   }
 
-  Future<void> _alternarSeguir(UsuarioResumoDTO usuario) async {
-    final userService = Provider.of<HttpUserService>(context, listen: false);
-    try {
-      await userService.alternarSeguir(usuario.id!);
-      // Em um cenário real, o backend retornaria se agora estamos seguindo ou não.
-      // Como não temos esse dado no DTO de resumo, apenas notificamos o usuário.
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Ação realizada para o usuário ${usuario.nome}')),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao processar: $e')),
-        );
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -88,7 +68,7 @@ class _BuscaUsuariosScreenState extends State<BuscaUsuariosScreen> {
         ),
         Expanded(
           child: _carregando
-              ? const Center(child: CircularProgressIndicator(color: Colors.deepPurple))
+              ? Center(child: CircularProgressIndicator(color: Theme.of(context).colorScheme.primary))
               : _usuarios.isEmpty
                   ? Center(
                       child: Text(
@@ -110,15 +90,7 @@ class _BuscaUsuariosScreenState extends State<BuscaUsuariosScreen> {
                                 : const AssetImage('assets/images/BT_Profile.png') as ImageProvider,
                           ),
                           title: Text(usuario.nome ?? 'Sem nome', style: const TextStyle(fontWeight: FontWeight.bold)),
-                          trailing: ElevatedButton(
-                            onPressed: () => _alternarSeguir(usuario),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.deepPurple,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                            ),
-                            child: const Text('Seguir'),
-                          ),
+                          trailing: const Icon(Icons.chevron_right, color: Colors.grey),
                           onTap: () {
                             Navigator.push(
                               context,

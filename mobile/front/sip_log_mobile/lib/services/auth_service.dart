@@ -16,10 +16,25 @@ class AuthService extends ChangeNotifier {
   String? _idToken;
   DateTime? _accessTokenExpiration;
   bool _isBusy = false;
+  String? _userAvatarUrl;
+  int? _userId;
 
   String? get accessToken => _accessToken;
   bool get isAuthenticated => _accessToken != null;
   bool get isBusy => _isBusy;
+  String? get userAvatarUrl => _userAvatarUrl;
+  int? get userId => _userId;
+
+  void updateUserData({String? avatarUrl, int? id}) {
+    if (avatarUrl != null) _userAvatarUrl = avatarUrl;
+    if (id != null) _userId = id;
+    notifyListeners();
+  }
+
+  void updateAvatarUrl(String? url) {
+    _userAvatarUrl = url;
+    notifyListeners();
+  }
 
   static const _config = AuthorizationServiceConfiguration(
     authorizationEndpoint: '$_issuer/protocol/openid-connect/auth',

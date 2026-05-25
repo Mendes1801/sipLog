@@ -130,8 +130,6 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Degustação', style: TextStyle(fontFamily: 'BaksoSapi')),
-        backgroundColor: Colors.deepPurple,
-        foregroundColor: Colors.white,
       ),
       body: Column(
         children: [
@@ -177,7 +175,16 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
 
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            decoration: BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.grey.shade300, blurRadius: 4)]),
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, -2)
+                )
+              ]
+            ),
             child: SafeArea(
               child: Row(
                 children: [
@@ -195,7 +202,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                   _enviando
                     ? const CircularProgressIndicator()
                     : IconButton(
-                        icon: const Icon(Icons.send, color: Colors.deepPurple),
+                        icon: Icon(Icons.send, color: Theme.of(context).primaryColor),
                         onPressed: _enviarComentario,
                       ),
                 ],
