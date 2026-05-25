@@ -1,5 +1,3 @@
-## 📁 Arquivo: `/README.md` (Raiz do Projeto)
-
 # 🍷 SipLog
 
 Bem-vindo ao repositório do **SipLog**, uma plataforma social focada no registro, compartilhamento e descoberta de experiências com bebidas (como vinhos, cervejas e outros). O objetivo é conectar pessoas através de suas degustações, permitindo o engajamento com amigos na rede.
